@@ -83,11 +83,8 @@ struct linux_dirent {
 	char		d_name[1];
 };
 
-typedef unsigned short	__kernel_old_uid_t;
-typedef	__kernel_old_uid_t	old_uid_t;
 
-typedef unsigned short	__kernel_old_gid_t;
-typedef	__kernel_old_gid_t	old_gid_t;
+
 
 struct getcpu_cache {
 	unsigned long blob[128 / sizeof(long)];

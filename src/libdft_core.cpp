@@ -42,7 +42,7 @@
  */
 
 #include <errno.h>
-#include <string.h>
+#include <cstring>
 
 #include "pin.H"
 #include "libdft_api.h"
@@ -50,7 +50,10 @@
 #include "tagmap.h"
 #include "branch_pred.h"
 
-
+typedef unsigned char uint8_t;
+typedef unsigned int uint32_t;
+typedef unsigned short uint16_t;
+#define __func__ __FUNCTION__
 /* thread context */
 extern REG	thread_ctx_ptr;
 
@@ -94,7 +97,7 @@ _cwde(thread_ctx_t *thread_ctx)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit register as t[dst] = t[upper(src)]
  *
  * NOTE: special case for MOVSX instruction
@@ -117,7 +120,7 @@ _movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit register as t[dst] = t[lower(src)]
  *
  * NOTE: special case for MOVSX instruction
@@ -130,9 +133,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-	
+
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
@@ -157,7 +160,7 @@ _movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
 
 	/* update the destination (xfer) */
-	thread_ctx->vcpu.gpr[dst] = MAP_8H_32[src_tag]; 
+	thread_ctx->vcpu.gpr[dst] = MAP_8H_32[src_tag];
 }
 
 /*
@@ -179,7 +182,7 @@ _movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
 
 	/* update the destination (xfer) */
-	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag]; 
+	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
 
 /*
@@ -210,7 +213,7 @@ _movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit memory location as
  * t[dst] = t[src]
  *
@@ -224,10 +227,10 @@ static void PIN_FAST_ANALYSIS_CALL
 _movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-	
-	/* update the destination (xfer) */ 
+
+	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
 }
@@ -235,7 +238,7 @@ _movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 32-bit 
+ * propagate and extend tag between a 32-bit
  * register and an 8-bit memory location as
  * t[dst] = t[src]
  *
@@ -249,9 +252,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-	
+
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
@@ -272,7 +275,7 @@ static void PIN_FAST_ANALYSIS_CALL
 _movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
 
@@ -286,7 +289,7 @@ _movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit register as t[dst] = t[upper(src)]
  *
  * NOTE: special case for MOVZX instruction
@@ -310,7 +313,7 @@ _movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit register as t[dst] = t[lower(src)]
  *
  * NOTE: special case for MOVZX instruction
@@ -323,9 +326,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-	
+
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
@@ -351,7 +354,7 @@ _movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1;
 
 	/* update the destination (xfer) */
-	thread_ctx->vcpu.gpr[dst] = src_tag; 
+	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
 
 /*
@@ -373,7 +376,7 @@ _movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
 
 	/* update the destination (xfer) */
-	thread_ctx->vcpu.gpr[dst] = src_tag; 
+	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
 
 /*
@@ -401,7 +404,7 @@ _movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 16-bit 
+ * propagate and extend tag between a 16-bit
  * register and an 8-bit memory location as
  * t[dst] = t[src]
  *
@@ -415,10 +418,10 @@ static void PIN_FAST_ANALYSIS_CALL
 _movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-	
-	/* update the destination (xfer) */ 
+
+	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
 }
@@ -426,7 +429,7 @@ _movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate and extend tag between a 32-bit 
+ * propagate and extend tag between a 32-bit
  * register and an 8-bit memory location as
  * t[dst] = t[src]
  *
@@ -440,9 +443,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-	
+
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -463,7 +466,7 @@ static void PIN_FAST_ANALYSIS_CALL
 _movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t src_tag = 
+	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
 
@@ -492,9 +495,9 @@ _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
 							uint32_t src_val)
 {
 	/* save the tag value of dst in the scratch register */
-	thread_ctx->vcpu.gpr[8] = 
+	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[src];
@@ -506,7 +509,7 @@ _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 32-bit 
+ * propagate tag between two 32-bit
  * registers as t[dst] = t[src]; restore the
  * value of EAX from the scratch register
  *
@@ -520,9 +523,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* restore the tag value from the scratch register */
-	thread_ctx->vcpu.gpr[7] = 
+	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[8];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[src];
@@ -549,9 +552,9 @@ _cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,
 						uint16_t src_val)
 {
 	/* save the tag value of dst in the scratch register */
-	thread_ctx->vcpu.gpr[8] = 
+	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		(thread_ctx->vcpu.gpr[7] & ~VCPU_MASK16) |
@@ -564,7 +567,7 @@ _cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 16-bit 
+ * propagate tag between two 16-bit
  * registers as t[dst] = t[src]; restore the
  * value of AX from the scratch register
  *
@@ -578,9 +581,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* restore the tag value from the scratch register */
-	thread_ctx->vcpu.gpr[7] = 
+	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[8];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -607,14 +610,14 @@ static ADDRINT PIN_FAST_ANALYSIS_CALL
 _cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
 {
 	/* save the tag value of dst in the scratch register */
-	thread_ctx->vcpu.gpr[8] = 
+	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
-	
+
 	/* compare the dst and src values; the original values the tag bits */
 	return (dst_val == *(uint32_t *)src);
 }
@@ -622,7 +625,7 @@ _cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location
  * as t[dst] = t[src]; restore the value
  * of EAX from the scratch register
@@ -637,9 +640,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	/* restore the tag value from the scratch register */
-	thread_ctx->vcpu.gpr[7] = 
+	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[8];
-	
+
 	/* update */
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
@@ -669,15 +672,15 @@ static ADDRINT PIN_FAST_ANALYSIS_CALL
 _cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)
 {
 	/* save the tag value of dst in the scratch register */
-	thread_ctx->vcpu.gpr[8] = 
+	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
-	
+
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		(thread_ctx->vcpu.gpr[7] & ~VCPU_MASK16) |
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-	
+
 	/* compare the dst and src values; the original values the tag bits */
 	return (dst_val == *(uint16_t *)src);
 }
@@ -685,7 +688,7 @@ _cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location
  * as t[dst] = t[src]; restore the value
  * of AX from the scratch register
@@ -701,9 +704,9 @@ static void PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	/* restore the tag value from the scratch register */
-	thread_ctx->vcpu.gpr[7] = 
+	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[8];
-	
+
 	/* update */
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
@@ -715,7 +718,7 @@ _cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] = t[lower(src)]
  * and t[lower(src)] = t[upper(dst)]
  *
@@ -735,7 +738,7 @@ _xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
 		 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		 (thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | (tmp_tag >> 1);
 }
@@ -743,7 +746,7 @@ _xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] = t[upper(src)]
  * and t[upper(src)] = t[lower(dst)]
  *
@@ -761,9 +764,9 @@ _xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
-		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) | 
+		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 	 (thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | (tmp_tag << 1);
 }
@@ -771,7 +774,7 @@ _xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] = t[upper(src)]
  * and t[upper(src)] = t[upper(dst)]
  *
@@ -791,7 +794,7 @@ _xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | tmp_tag;
 }
@@ -799,7 +802,7 @@ _xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] = t[lower(src)]
  * and t[lower(src)] = t[lower(dst)]
  *
@@ -813,13 +816,13 @@ static void PIN_FAST_ANALYSIS_CALL
 _xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8; 
+	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | tmp_tag;
 }
@@ -827,7 +830,7 @@ _xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 16-bit 
+ * propagate tag between two 16-bit
  * registers as t[dst] = t[src]
  * and t[src] = t[dst]
  *
@@ -841,13 +844,13 @@ static void PIN_FAST_ANALYSIS_CALL
 _xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16; 
+	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK16) | tmp_tag;
 }
@@ -855,7 +858,7 @@ _xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an upper 8-bit 
+ * propagate tag between an upper 8-bit
  * register and a memory location as
  * t[dst] = t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -886,7 +889,7 @@ _xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a lower 8-bit 
+ * propagate tag between a lower 8-bit
  * register and a memory location as
  * t[dst] = t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -902,12 +905,12 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-	
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8);
-	
+
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		(tmp_tag << VIRT2BIT(dst));
@@ -916,7 +919,7 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] = t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -933,7 +936,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
 
-	/* swap */	
+	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -948,7 +951,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] = t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -964,12 +967,12 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-	
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
-	
+
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
 							      VIRT2BIT(dst))) |
@@ -979,7 +982,7 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] |= t[lower(src)]
  * and t[lower(src)] = t[upper(dst)]
  *
@@ -999,7 +1002,7 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
 		 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		 (thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | (tmp_tag >> 1);
 }
@@ -1007,7 +1010,7 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] |= t[upper(src)]
  * and t[upper(src)] = t[lower(dst)]
  *
@@ -1025,9 +1028,9 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
-		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) | 
+		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 	 (thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | (tmp_tag << 1);
 }
@@ -1035,7 +1038,7 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] |= t[upper(src)]
  * and t[upper(src)] = t[upper(dst)]
  *
@@ -1055,7 +1058,7 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | tmp_tag;
 }
@@ -1063,7 +1066,7 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] |= t[lower(src)]
  * and t[lower(src)] = t[lower(dst)]
  *
@@ -1077,13 +1080,13 @@ static void PIN_FAST_ANALYSIS_CALL
 _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8; 
+	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | tmp_tag;
 }
@@ -1091,7 +1094,7 @@ _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 16-bit 
+ * propagate tag between two 16-bit
  * registers as t[dst] |= t[src]
  * and t[src] = t[dst]
  *
@@ -1105,13 +1108,13 @@ static void PIN_FAST_ANALYSIS_CALL
 _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16; 
+	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
 
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
-	
+
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK16) | tmp_tag;
 }
@@ -1119,7 +1122,7 @@ _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an upper 8-bit 
+ * propagate tag between an upper 8-bit
  * register and a memory location as
  * t[dst] |= t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -1150,7 +1153,7 @@ _xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a lower 8-bit 
+ * propagate tag between a lower 8-bit
  * register and a memory location as
  * t[dst] |= t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -1166,12 +1169,12 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-	
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8);
-	
+
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		(tmp_tag << VIRT2BIT(dst));
@@ -1180,7 +1183,7 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] |= t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -1197,7 +1200,7 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
 
-	/* swap */	
+	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -1212,7 +1215,7 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] |= t[src] and t[src] = t[dst]
  * (dst is a register)
@@ -1228,12 +1231,12 @@ _xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-	
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
-	
+
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & (LONG_MASK <<
 							      VIRT2BIT(dst))) |
@@ -1243,7 +1246,7 @@ _xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between three 16-bit 
+ * propagate tag between three 16-bit
  * registers as t[dst] = t[base] | t[index]
  *
  * NOTE: special case for the LEA instruction
@@ -1269,7 +1272,7 @@ _lea_r2r_opw(thread_ctx_t *thread_ctx,
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between three 32-bit 
+ * propagate tag between three 32-bit
  * registers as t[dst] = t[base] | t[index]
  *
  * NOTE: special case for the LEA instruction
@@ -1306,7 +1309,7 @@ r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-	
+
 	/* update the destination (ternary) */
 	thread_ctx->vcpu.gpr[7] |= MAP_8H_16[tmp_tag];
 }
@@ -1335,9 +1338,9 @@ r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between among three 16-bit 
+ * propagate tag between among three 16-bit
  * registers as t[dst1] |= t[src] and t[dst2] |= t[src];
- * dst1 is DX, dst2 is AX, and src is a 16-bit register 
+ * dst1 is DX, dst2 is AX, and src is a 16-bit register
  * (e.g., CX, BX, ...)
  *
  * NOTE: special case for DIV and IDIV instructions
@@ -1350,7 +1353,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
-	
+
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= tmp_tag;
 	thread_ctx->vcpu.gpr[7] |= tmp_tag;
@@ -1359,7 +1362,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between among three 32-bit 
+ * propagate tag between among three 32-bit
  * registers as t[dst1] |= t[src] and t[dst2] |= t[src];
  * dst1 is EDX, dst2 is EAX, and src is a 32-bit register
  * (e.g., ECX, EBX, ...)
@@ -1371,7 +1374,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src)
-{ 
+{
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= thread_ctx->vcpu.gpr[src];
 	thread_ctx->vcpu.gpr[7] |= thread_ctx->vcpu.gpr[src];
@@ -1393,9 +1396,9 @@ static void PIN_FAST_ANALYSIS_CALL
 m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = 
+	size_t tmp_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-	
+
 	/* update the destination (ternary) */
 	thread_ctx->vcpu.gpr[7] |= MAP_8L_16[tmp_tag];
 }
@@ -1419,19 +1422,19 @@ static void PIN_FAST_ANALYSIS_CALL
 m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = 
+	size_t tmp_tag =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16;
-	
+
 	/* update the destinations */
-	thread_ctx->vcpu.gpr[5] |= tmp_tag; 
-	thread_ctx->vcpu.gpr[7] |= tmp_tag; 
+	thread_ctx->vcpu.gpr[5] |= tmp_tag;
+	thread_ctx->vcpu.gpr[7] |= tmp_tag;
 }
 
 /*
  * tag propagation (analysis function)
  *
- * propagate tag among two 32-bit 
+ * propagate tag among two 32-bit
  * registers and a 32-bit memory as
  * t[dst1] |= t[src] and t[dst2] |= t[src];
  * dst1 is EDX, dst2 is EAX, and src is a 32-bit
@@ -1446,7 +1449,7 @@ static void PIN_FAST_ANALYSIS_CALL
 m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 {
 	/* temporary tag value */
-	size_t tmp_tag = 
+	size_t tmp_tag =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
 
@@ -1458,7 +1461,7 @@ m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] |= t[lower(src)];
  *
  * @thread_ctx:	the thread context
@@ -1475,7 +1478,7 @@ r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] |= t[upper(src)];
  *
  * @thread_ctx:	the thread context
@@ -1492,7 +1495,7 @@ r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] |= t[upper(src)]
  *
  * @thread_ctx:	the thread context
@@ -1509,7 +1512,7 @@ r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] |= t[lower(src)]
  *
  * @thread_ctx:	the thread context
@@ -1543,7 +1546,7 @@ r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 32-bit 
+ * propagate tag between two 32-bit
  * registers as t[dst] |= t[src]
  *
  * @thread_ctx:	the thread context
@@ -1559,7 +1562,7 @@ r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[upper(dst)] |= t[src] (dst is a register)
  *
@@ -1577,7 +1580,7 @@ m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[lower(dst)] |= t[src] (dst is a register)
  *
@@ -1595,7 +1598,7 @@ m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] |= t[src] (dst is a register)
  *
@@ -1614,7 +1617,7 @@ m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] |= t[src] (dst is a register)
  *
@@ -1633,7 +1636,7 @@ m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[dst] |= t[upper(src)] (src is a register)
  *
@@ -1652,7 +1655,7 @@ r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[dst] |= t[lower(src)] (src is a register)
  *
@@ -1670,7 +1673,7 @@ r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] |= t[src] (src is a register)
  *
@@ -1689,7 +1692,7 @@ r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] |= t[src] (src is a register)
  *
@@ -1711,7 +1714,7 @@ r2m_binary_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * clear the tag of EAX, EBX, ECX, EDX
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrl4(thread_ctx_t *thread_ctx)
@@ -1728,7 +1731,7 @@ r_clrl4(thread_ctx_t *thread_ctx)
  * clear the tag of EAX, EDX
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrl2(thread_ctx_t *thread_ctx)
@@ -1743,7 +1746,7 @@ r_clrl2(thread_ctx_t *thread_ctx)
  * clear the tag of a 32-bit register
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrl(thread_ctx_t *thread_ctx, uint32_t reg)
@@ -1757,7 +1760,7 @@ r_clrl(thread_ctx_t *thread_ctx, uint32_t reg)
  * clear the tag of a 16-bit register
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrw(thread_ctx_t *thread_ctx, uint32_t reg)
@@ -1771,7 +1774,7 @@ r_clrw(thread_ctx_t *thread_ctx, uint32_t reg)
  * clear the tag of an upper 8-bit register
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrb_u(thread_ctx_t *thread_ctx, uint32_t reg)
@@ -1785,7 +1788,7 @@ r_clrb_u(thread_ctx_t *thread_ctx, uint32_t reg)
  * clear the tag of a lower 8-bit register
  *
  * @thread_ctx:	the thread context
- * @reg:	register index (VCPU) 
+ * @reg:	register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
 r_clrb_l(thread_ctx_t *thread_ctx, uint32_t reg)
@@ -1796,7 +1799,7 @@ r_clrb_l(thread_ctx_t *thread_ctx, uint32_t reg)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] = t[lower(src)]
  *
  * @thread_ctx:	the thread context
@@ -1814,7 +1817,7 @@ r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] = t[upper(src)];
  *
  * @thread_ctx:	the thread context
@@ -1825,14 +1828,14 @@ static void PIN_FAST_ANALYSIS_CALL
 r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] =
-		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) | 
+		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1);
 }
 
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[upper(dst)] = t[upper(src)]
  *
  * @thread_ctx:	the thread context
@@ -1850,7 +1853,7 @@ r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * registers as t[lower(dst)] = t[lower(src)]
  *
  * @thread_ctx:	the thread context
@@ -1868,7 +1871,7 @@ r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 16-bit 
+ * propagate tag between two 16-bit
  * registers as t[dst] = t[src]
  *
  * @thread_ctx:	the thread context
@@ -1886,7 +1889,7 @@ r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 32-bit 
+ * propagate tag between two 32-bit
  * registers as t[dst] = t[src]
  *
  * @thread_ctx:	the thread context
@@ -1903,7 +1906,7 @@ r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an upper 8-bit 
+ * propagate tag between an upper 8-bit
  * register and a memory location as
  * t[dst] = t[src] (dst is a register)
  *
@@ -1923,7 +1926,7 @@ m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a lower 8-bit 
+ * propagate tag between a lower 8-bit
  * register and a memory location as
  * t[dst] = t[src] (dst is a register)
  *
@@ -1942,7 +1945,7 @@ m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] = t[src] (dst is a register)
  *
@@ -1962,7 +1965,7 @@ m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] = t[src] (dst is a register)
  *
@@ -1981,7 +1984,7 @@ m2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a n-memory locations as
  * t[dst] = t[src]; src is AL
  *
@@ -2016,14 +2019,14 @@ r2m_xfer_opbn(thread_ctx_t *thread_ctx,
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst - count + 1, count);
-	
+
 	}
 }
 
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[dst] = t[upper(src)] (src is a register)
  *
@@ -2043,7 +2046,7 @@ r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between an 8-bit 
+ * propagate tag between an 8-bit
  * register and a memory location as
  * t[dst] = t[lower(src)] (src is a register)
  *
@@ -2062,7 +2065,7 @@ r2m_xfer_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a n-memory locations as
  * t[dst] = t[src]; src is AX
  *
@@ -2102,7 +2105,7 @@ r2m_xfer_opwn(thread_ctx_t *thread_ctx,
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 16-bit 
+ * propagate tag between a 16-bit
  * register and a memory location as
  * t[dst] = t[src] (src is a register)
  *
@@ -2123,7 +2126,7 @@ r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a n-memory locations as
  * t[dst] = t[src]; src is EAX
  *
@@ -2164,7 +2167,7 @@ r2m_xfer_opln(thread_ctx_t *thread_ctx,
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between a 32-bit 
+ * propagate tag between a 32-bit
  * register and a memory location as
  * t[dst] = t[src] (src is a register)
  *
@@ -2185,7 +2188,7 @@ r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 16-bit 
+ * propagate tag between two 16-bit
  * memory locations as t[dst] = t[src]
  *
  * @dst:	destination memory address
@@ -2204,7 +2207,7 @@ m2m_xfer_opw(ADDRINT dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 8-bit 
+ * propagate tag between two 8-bit
  * memory locations as t[dst] = t[src]
  *
  * @dst:	destination memory address
@@ -2223,7 +2226,7 @@ m2m_xfer_opb(ADDRINT dst, ADDRINT src)
 /*
  * tag propagation (analysis function)
  *
- * propagate tag between two 32-bit 
+ * propagate tag between two 32-bit
  * memory locations as t[dst] = t[src]
  *
  * @dst:	destination memory address
@@ -2257,7 +2260,7 @@ static ADDRINT PIN_FAST_ANALYSIS_CALL
 rep_predicate(BOOL first_iteration)
 {
 	/* return the flag; typically this is true only once */
-	return first_iteration; 
+	return first_iteration;
 }
 
 /*
@@ -2267,10 +2270,10 @@ rep_predicate(BOOL first_iteration)
  * 16-bit general purpose registers from
  * the memory
  *
- * NOTE: special case for POPA instruction 
+ * NOTE: special case for POPA instruction
  *
  * @thread_ctx:	the thread context
- * @src:	the source memory address	
+ * @src:	the source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
 m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
@@ -2282,17 +2285,17 @@ m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
 	thread_ctx->vcpu.gpr[0] =
 		(thread_ctx->vcpu.gpr[0] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src)) & VCPU_MASK16);
-	
+
 	/* restore SI */
 	thread_ctx->vcpu.gpr[1] =
 		(thread_ctx->vcpu.gpr[1] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src + 2)) & VCPU_MASK16);
-	
+
 	/* restore BP */
 	thread_ctx->vcpu.gpr[2] =
 		(thread_ctx->vcpu.gpr[2] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src + 4)) & VCPU_MASK16);
-	
+
 	/* update the tagmap value */
 	src	+= 8;
 	src_val	= *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2301,17 +2304,17 @@ m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
 	thread_ctx->vcpu.gpr[4] =
 		(thread_ctx->vcpu.gpr[4] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src)) & VCPU_MASK16);
-	
+
 	/* restore DX */
 	thread_ctx->vcpu.gpr[5] =
 		(thread_ctx->vcpu.gpr[5] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src + 2)) & VCPU_MASK16);
-	
+
 	/* restore CX */
 	thread_ctx->vcpu.gpr[6] =
 		(thread_ctx->vcpu.gpr[6] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src + 4)) & VCPU_MASK16);
-	
+
 	/* restore AX */
 	thread_ctx->vcpu.gpr[7] =
 		(thread_ctx->vcpu.gpr[7] & ~VCPU_MASK16) |
@@ -2325,10 +2328,10 @@ m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
  * 32-bit general purpose registers from
  * the memory
  *
- * NOTE: special case for POPAD instruction 
+ * NOTE: special case for POPAD instruction
  *
  * @thread_ctx:	the thread context
- * @src:	the source memory address	
+ * @src:	the source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
 m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
@@ -2343,7 +2346,7 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* restore ESI */
 	thread_ctx->vcpu.gpr[1] =
 		(src_val >> VIRT2BIT(src + 4)) & VCPU_MASK32;
-	
+
 	/* update the tagmap value */
 	src	+= 8;
 	src_val	= *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2351,7 +2354,7 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* restore EBP */
 	thread_ctx->vcpu.gpr[2] =
 		(src_val >> VIRT2BIT(src)) & VCPU_MASK32;
-	
+
 	/* update the tagmap value */
 	src	+= 8;
 	src_val	= *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2359,11 +2362,11 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* restore EBX */
 	thread_ctx->vcpu.gpr[4] =
 		(src_val >> VIRT2BIT(src)) & VCPU_MASK32;
-	
+
 	/* restore EDX */
 	thread_ctx->vcpu.gpr[5] =
 		(src_val >> VIRT2BIT(src + 4)) & VCPU_MASK32;
-	
+
 	/* update the tagmap value */
 	src	+= 8;
 	src_val	= *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2371,7 +2374,7 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* restore ECX */
 	thread_ctx->vcpu.gpr[6] =
 		(src_val >> VIRT2BIT(src)) & VCPU_MASK32;
-	
+
 	/* restore EAX */
 	thread_ctx->vcpu.gpr[7] =
 		(src_val >> VIRT2BIT(src + 4)) & VCPU_MASK32;
@@ -2475,7 +2478,7 @@ r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst)
  * save the tag values for all the 32-bit
  * general purpose registers into the memory
  *
- * NOTE: special case for PUSHAD instruction 
+ * NOTE: special case for PUSHAD instruction
  *
  * @thread_ctx:	the thread context
  * @dst:	the destination memory address
@@ -2499,7 +2502,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[1] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-	
+
 	/* update the destination memory address */
 	dst += 4;
 
@@ -2509,7 +2512,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[2] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-	
+
 	/* update the destination memory address */
 	dst += 4;
 
@@ -2529,7 +2532,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[4] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-	
+
 	/* update the destination memory address */
 	dst += 4;
 
@@ -2539,7 +2542,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[5] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-	
+
 	/* update the destination memory address */
 	dst += 4;
 
@@ -2549,10 +2552,10 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[6] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-	
+
 	/* update the destination memory address */
 	dst += 4;
-	
+
 	/* save EAX */
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
@@ -2572,7 +2575,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 void
 ins_inspect(INS ins)
 {
-	/* 
+	/*
 	 * temporaries;
 	 * source, destination, base, and index registers
 	 */
@@ -2582,7 +2585,7 @@ ins_inspect(INS ins)
 	xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
 
 	/* sanity check */
-	if (unlikely(ins_indx <= XED_ICLASS_INVALID || 
+	if (unlikely(ins_indx <= XED_ICLASS_INVALID ||
 				ins_indx >= XED_ICLASS_LAST)) {
 		LOG(string(__func__) + ": unknown opcode (opcode=" +
 				decstr(ins_indx) + ")\n");
@@ -2623,7 +2626,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)) {
 					/* check for x86 clear register idiom */
@@ -2633,14 +2636,14 @@ ins_inspect(INS ins)
 						case XED_ICLASS_SUB:
 						case XED_ICLASS_SBB:
 							/* same dst, src */
-							if (reg_dst == reg_src) 
+							if (reg_dst == reg_src)
 							{
 								/* clear */
 							INS_InsertCall(ins,
 								IPOINT_BEFORE,
 								(AFUNPTR)r_clrl,
 							IARG_FAST_ANALYSIS_CALL,
-								IARG_REG_VALUE, 
+								IARG_REG_VALUE,
 								thread_ctx_ptr,
 								IARG_UINT32,
 							REG32_INDX(reg_dst),
@@ -2651,7 +2654,7 @@ ins_inspect(INS ins)
 							}
 						/* default behavior */
 						default:
-							/* 
+							/*
 							 * propagate the tag
 							 * markings accordingly
 							 */
@@ -2677,14 +2680,14 @@ ins_inspect(INS ins)
 						case XED_ICLASS_SUB:
 						case XED_ICLASS_SBB:
 							/* same dst, src */
-							if (reg_dst == reg_src) 
+							if (reg_dst == reg_src)
 							{
 								/* clear */
 							INS_InsertCall(ins,
 								IPOINT_BEFORE,
 								(AFUNPTR)r_clrw,
 							IARG_FAST_ANALYSIS_CALL,
-								IARG_REG_VALUE, 
+								IARG_REG_VALUE,
 								thread_ctx_ptr,
 								IARG_UINT32,
 							REG16_INDX(reg_dst),
@@ -2700,7 +2703,7 @@ ins_inspect(INS ins)
 								IPOINT_BEFORE,
 							(AFUNPTR)r2r_binary_opw,
 							IARG_FAST_ANALYSIS_CALL,
-								IARG_REG_VALUE, 
+								IARG_REG_VALUE,
 								thread_ctx_ptr,
 								IARG_UINT32,
 							REG16_INDX(reg_dst),
@@ -2718,7 +2721,7 @@ ins_inspect(INS ins)
 						case XED_ICLASS_SUB:
 						case XED_ICLASS_SBB:
 							/* same dst, src */
-							if (reg_dst == reg_src) 
+							if (reg_dst == reg_src)
 							{
 							/* 8-bit upper */
 						if (REG_is_Upper8(reg_dst))
@@ -2733,7 +2736,7 @@ ins_inspect(INS ins)
 							REG8_INDX(reg_dst),
 								IARG_END);
 							/* 8-bit lower */
-						else 
+						else
 								/* clear */
 							INS_InsertCall(ins,
 								IPOINT_BEFORE,
@@ -2774,7 +2777,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else if (REG_is_Lower8(reg_dst))
-						/* 
+						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
@@ -2789,7 +2792,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else
-						/* 
+						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
@@ -2806,7 +2809,7 @@ ins_inspect(INS ins)
 					}
 				}
 			}
-			/* 
+			/*
 			 * 2nd operand is memory;
 			 * we optimize for that case, since most
 			 * instructions will have a register as
@@ -2851,7 +2854,7 @@ ins_inspect(INS ins)
 						IARG_MEMORYREAD_EA,
 						IARG_END);
 				/* 8-bit operand (lower) */
-				else 
+				else
 					/* propagate the tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -2927,7 +2930,7 @@ ins_inspect(INS ins)
 			 * tag of the source to the destination
 			 * (i.e., t[dst] = t[src])
 			 */
-			/* 
+			/*
 			 * 2nd operand is immediate or segment register;
 			 * clear the destination
 			 *
@@ -3048,7 +3051,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst))
 					/* propagate the tag accordingly */
@@ -3097,7 +3100,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else if (REG_is_Lower8(reg_dst))
-						/* 
+						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
@@ -3112,7 +3115,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else
-						/* 
+						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
@@ -3128,7 +3131,7 @@ ins_inspect(INS ins)
 						IARG_END);
 				}
 			}
-			/* 
+			/*
 			 * 2nd operand is memory;
 			 * we optimize for that case, since most
 			 * instructions will have a register as
@@ -3162,7 +3165,7 @@ ins_inspect(INS ins)
 						IARG_MEMORYREAD_EA,
 						IARG_END);
 				/* 8-bit operands (upper) */
-				else if (REG_is_Upper8(reg_dst)) 
+				else if (REG_is_Upper8(reg_dst))
 					/* propagate the tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -3223,7 +3226,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 				/* 8-bit operands (lower) */
-				else 
+				else
 					/* propagate the tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -3266,7 +3269,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst))
 					/* propagate the tag accordingly */
@@ -3279,7 +3282,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_END);
 				/* 16-bit operands */
-				else 
+				else
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 						IPOINT_BEFORE,
@@ -3290,7 +3293,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_src),
 						IARG_END);
 			}
-			/* 
+			/*
 			 * 2nd operand is memory;
 			 * we optimize for that case, since most
 			 * instructions will have a register as
@@ -3327,7 +3330,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * cbw;
 		 * move the tag associated with AL to AH
 		 *
@@ -3367,7 +3370,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * cwde;
 		 * move the tag associated with AX to EAX
 		 *
@@ -3405,7 +3408,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * movsx;
 		 *
 		 * NOTE: sign extension generates data that
@@ -3424,7 +3427,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst)) {
 					/* upper 8-bit */
@@ -3487,7 +3490,7 @@ ins_inspect(INS ins)
 			else {
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
-				
+
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst))
 					/* propagate the tag accordingly */
@@ -3546,7 +3549,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst)) {
 					/* upper 8-bit */
@@ -3609,7 +3612,7 @@ ins_inspect(INS ins)
 			else {
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
-				
+
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst))
 					/* propagate the tag accordingly */
@@ -3710,7 +3713,7 @@ ins_inspect(INS ins)
 			else {
 				/* extract the operand */
 				reg_src = INS_OperandReg(ins, OP_0);
-				
+
 				/* 32-bit operand */
 				if (REG_is_gr32(reg_src))
 					/* propagate the tag accordingly */
@@ -3742,7 +3745,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 				/* 8-bit operand (lower) */
-				else 
+				else
 					/* propagate the tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -3759,7 +3762,7 @@ ins_inspect(INS ins)
 		 * imul;
 		 * I'm still wondering how brain-damaged the
 		 * ISA architect should be in order to come
-		 * up with something so ugly as the IMUL 
+		 * up with something so ugly as the IMUL
 		 * instruction
 		 */
 		case XED_ICLASS_IMUL:
@@ -3814,7 +3817,7 @@ ins_inspect(INS ins)
 			else {
 				/* extract the operand */
 				reg_src = INS_OperandReg(ins, OP_0);
-				
+
 				/* 32-bit operand */
 				if (REG_is_gr32(reg_src))
 					/* propagate the tag accordingly */
@@ -3868,7 +3871,7 @@ ins_inspect(INS ins)
 					/* extract the operands */
 					reg_dst = INS_OperandReg(ins, OP_0);
 					reg_src = INS_OperandReg(ins, OP_1);
-				
+
 					/* 32-bit operands */
 					if (REG_is_gr32(reg_dst))
 					/* propagate the tag accordingly */
@@ -3892,7 +3895,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_src),
 							IARG_END);
 				}
-				/* 
+				/*
 				 * 2nd operand is memory;
 				 * we optimize for that case, since most
 				 * instructions will have a register as
@@ -3955,9 +3958,9 @@ ins_inspect(INS ins)
 			if (INS_MemoryOperandCount(ins) == 0) {
 				/* extract the operand */
 				reg_dst = INS_OperandReg(ins, OP_0);
-				
+
 				/* 8-bit operand (upper) */
-				if (REG_is_Upper8(reg_dst))	
+				if (REG_is_Upper8(reg_dst))
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 							IPOINT_BEFORE,
@@ -3967,7 +3970,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_END);
 				/* 8-bit operand (lower) */
-				else 
+				else
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 							IPOINT_BEFORE,
@@ -3989,7 +3992,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * stmxcsr;
 		 * clear the destination operand (register only)
 		 */
@@ -4001,7 +4004,7 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_MEMORYWRITE_EA,
 				IARG_END);
-		
+
 			/* done */
 			break;
 		/* smsw */
@@ -4016,7 +4019,7 @@ ins_inspect(INS ins)
 			if (INS_MemoryOperandCount(ins) == 0) {
 				/* extract the operand */
 				reg_dst = INS_OperandReg(ins, OP_0);
-				
+
 				/* 16-bit register */
 				if (REG_is_gr16(reg_dst))
 					/* propagate tag accordingly */
@@ -4028,7 +4031,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_END);
 				/* 32-bit register */
-				else 
+				else
 					/* propagate tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4050,7 +4053,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * lar;
 		 * clear the destination operand (register only)
 		 */
@@ -4099,10 +4102,10 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * cpuid;
 		 * clear the tag information associated with
-		 * EAX, EBX, ECX, and EDX 
+		 * EAX, EBX, ECX, and EDX
 		 */
 		case XED_ICLASS_CPUID:
 			/* propagate tag accordingly */
@@ -4115,7 +4118,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * lahf;
 		 * clear the tag information of AH
 		 */
@@ -4131,7 +4134,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * cmpxchg;
 		 * t[dst] = t[src] iff EAX/AX/AL == dst, else
 		 * t[EAX/AX/AL] = t[dst] -- yes late-night coding again
@@ -4250,7 +4253,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * xchg;
 		 * exchange the tag information of the two operands
 		 */
@@ -4260,7 +4263,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)) {
 					/* propagate the tag accordingly */
@@ -4326,7 +4329,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else if (REG_is_Lower8(reg_dst))
-						/* 
+						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
@@ -4341,7 +4344,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else
-						/* 
+						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
@@ -4357,7 +4360,7 @@ ins_inspect(INS ins)
 						IARG_END);
 				}
 			}
-			/* 
+			/*
 			 * 2nd operand is memory;
 			 * we optimize for that case, since most
 			 * instructions will have a register as
@@ -4367,7 +4370,7 @@ ins_inspect(INS ins)
 			else if (INS_OperandIsMemory(ins, OP_1)) {
 				/* extract the register operand */
 				reg_dst = INS_OperandReg(ins, OP_0);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst))
 					/* propagate the tag accordingly */
@@ -4466,7 +4469,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * xadd;
 		 * xchg + add. We instrument this instruction  using the tag
 		 * logic of xchg and add (see above)
@@ -4477,7 +4480,7 @@ ins_inspect(INS ins)
 				/* extract the operands */
 				reg_dst = INS_OperandReg(ins, OP_0);
 				reg_src = INS_OperandReg(ins, OP_1);
-				
+
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)) {
 					/* propagate the tag accordingly */
@@ -4551,7 +4554,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else if (REG_is_Lower8(reg_dst))
-						/* 
+						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
@@ -4566,7 +4569,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_END);
 					else
-						/* 
+						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
@@ -4691,7 +4694,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * stosb;
 		 * the opposite of lodsb; however, since the instruction can
 		 * also be prefixed with 'rep', the analysis code moves the
@@ -4720,7 +4723,7 @@ ins_inspect(INS ins)
 					IARG_END);
 			}
 			/* no rep prefix */
-			else 
+			else
 				/* the instruction is not rep prefixed */
 				INS_InsertCall(ins,
 					IPOINT_BEFORE,
@@ -4733,8 +4736,8 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
-		 * stosw; 
+		/*
+		 * stosw;
 		 * the opposite of lodsw; however, since the instruction can
 		 * also be prefixed with 'rep', the analysis code moves the
 		 * tag information, accordingly, only once (i.e., before the
@@ -4775,7 +4778,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * stosd;
 		 * the opposite of lodsd; however, since the instruction can
 		 * also be prefixed with 'rep', the analysis code moves the
@@ -4871,11 +4874,11 @@ ins_inspect(INS ins)
 		/* TODO: shifts are not handled (yet) */
 		/* rcl */
 		case XED_ICLASS_RCL:
-		/* rcr */        
+		/* rcr */
 		case XED_ICLASS_RCR:
-		/* rol */        
+		/* rol */
 		case XED_ICLASS_ROL:
-		/* ror */        
+		/* ror */
 		case XED_ICLASS_ROR:
 		/* sal/shl */
 		case XED_ICLASS_SHL:
@@ -5065,7 +5068,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* popad; 
+		/* popad;
 		 * similar to pop but for all the 32-bit
 		 * general purpose registers
 		 */
@@ -5081,7 +5084,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* pusha; 
+		/* pusha;
 		 * similar to push but for all the 16-bit
 		 * general purpose registers
 		 */
@@ -5097,7 +5100,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* pushad; 
+		/* pushad;
 		 * similar to push but for all the 32-bit
 		 * general purpose registers
 		 */
@@ -5208,7 +5211,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * leave;
 		 * similar to a mov between ESP/SP and EBP/BP, and a pop
 		 */
@@ -5217,7 +5220,7 @@ ins_inspect(INS ins)
 			reg_dst = INS_OperandReg(ins, OP_3);
 			reg_src = INS_OperandReg(ins, OP_2);
 
-			/* 32-bit operands */	
+			/* 32-bit operands */
 			if (REG_is_gr32(reg_dst)) {
 				/* propagate the tag accordingly */
 				INS_InsertCall(ins,
@@ -5274,7 +5277,7 @@ ins_inspect(INS ins)
 			reg_base	= INS_MemoryBaseReg(ins);
 			reg_indx	= INS_MemoryIndexReg(ins);
 			reg_dst		= INS_OperandReg(ins, OP_0);
-			
+
 			/* no base or index register; clear the destination */
 			if (reg_base == REG_INVALID() &&
 					reg_indx == REG_INVALID()) {
@@ -5290,7 +5293,7 @@ ins_inspect(INS ins)
 						REG32_INDX(reg_dst),
 						IARG_END);
 				/* 16-bit operands */
-				else 
+				else
 					/* clear */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -5316,7 +5319,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_base),
 						IARG_END);
 				/* 16-bit operands */
-				else 
+				else
 					/* propagate tag accordingly */
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -5381,7 +5384,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_indx),
 						IARG_END);
 			}
-			
+
 			/* done */
 			break;
 		/* cmpxchg */
@@ -5394,7 +5397,7 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
-		/* 
+		/*
 		 * default handler
 		 */
 		default:

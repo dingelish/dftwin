@@ -36,7 +36,7 @@
 //#include <sys/mman.h>
 
 #include <cstdio>
-#include "stdint.h"
+//#include "stdint.h"
 #include "stdlib.h"
 
 #include "tagmap.h"
@@ -51,6 +51,26 @@
 #define MAP_FLAGS	MAP_PRIVATE | MAP_ANONYMOUS
 #endif
 
+typedef signed char             int8_t;
+typedef short int               int16_t;
+typedef int                     int32_t;
+typedef __int64                int64_t;
+typedef unsigned char             uint8_t;
+typedef unsigned short int               uint16_t;
+typedef unsigned int                     uint32_t;
+typedef unsigned __int64                uint64_t;
+
+#define PROT_READ       0x1             /* Page can be read.  */
+#define PROT_WRITE      0x2             /* Page can be written.  */
+#define PROT_EXEC       0x4             /* Page can be executed.  */
+#define PROT_NONE       0x0             /* Page can not be accessed.  */
+#define PROT_GROWSDOWN  0x01000000      /* Extend change to start of
+                                           growsdown vma (mprotect only).  */
+#define PROT_GROWSUP    0x02000000      /* Extend change to start of */
+#define MAP_PRIVATE     0x02            /* Changes are private.  */
+# define MAP_ANONYMOUS  0x20            /* Don't use a file.  */
+
+#define MAP_FAILED	((void *) -1)
 
 /*
  * tagmap
@@ -78,11 +98,12 @@ tagmap_alloc(void)
 	 * if HUGE_TLB is defined, then the mapping is done
 	 * using ``huge pages''
 	 */
-	if (unlikely((bitmap = (uint8_t *)mmap(NULL,
-						BITMAP_SZ,
-						PROT_READ | PROT_WRITE,
-						MAP_FLAGS,
-						-1, 0)) == MAP_FAILED))
+//	if (unlikely((bitmap = (uint8_t *)mmap(NULL,
+//						BITMAP_SZ,
+//						PROT_READ | PROT_WRITE,
+//						MAP_FLAGS,
+//						-1, 0)) == MAP_FAILED))
+    if(bitmap = (uint8_t *)malloc(BITMAP_SZ) )
 		/* return with failure */
 		return 1;
 
@@ -97,7 +118,8 @@ void
 tagmap_free(void)
 {
 	/* deallocate the bitmap space */
-	(void)munmap(bitmap, BITMAP_SZ);
+//	(void)munmap(bitmap, BITMAP_SZ);
+    free(bitmap);
 }
 
 /*

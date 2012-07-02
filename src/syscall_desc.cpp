@@ -43,30 +43,30 @@
  * 	- add nfsservctl() handler
  */
 
-#include <sys/epoll.h>
-#include <sys/ipc.h>
-#include <sys/mman.h>
-#include <sys/msg.h>
-#include <sys/sem.h>
-#include <sys/shm.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/uio.h>
+//#include <sys/epoll.h>
+//#include <sys/ipc.h>
+//#include <sys/mman.h>
+//#include <sys/msg.h>
+//#include <sys/sem.h>
+//#include <sys/shm.h>
+//#include <sys/socket.h>
+//#include <sys/types.h>
+//#include <sys/uio.h>
+//
+//#include <asm/fcntl.h>
+//#include <asm/stat.h>
+//#include <linux/sysctl.h>
 
-#include <asm/fcntl.h>
-#include <asm/stat.h>
-#include <linux/sysctl.h>
-
-#include <err.h>
-#include <poll.h>
-#include <string.h>
-#include <unistd.h>
+//#include <err.h>
+//#include <poll.h>
+#include <cstring>
+#include "unistd_32.h"
 
 #include "syscall_desc.h"
 #include "tagmap.h"
-#include <linux/mempolicy.h>
-
-
+//#include <linux/mempolicy.h>
+#define __user
+#define __ARCH_SI_BAND_T long
 /* callbacks declaration */
 static void post_read_hook(syscall_ctx_t*);
 static void post_fcntl_hook(syscall_ctx_t*);
@@ -97,6 +97,803 @@ static void post_epoll_wait_hook(syscall_ctx_t *ctx);
 static void post_recvmmsg_hook(syscall_ctx_t *ctx);
 #endif
 
+typedef unsigned int    __kernel_ino_t;
+typedef unsigned int    __kernel_mode_t;
+typedef unsigned int    __kernel_nlink_t;
+typedef long            __kernel_off_t;
+typedef long long       __kernel_loff_t;
+typedef int             __kernel_pid_t;
+typedef int             __kernel_ipc_pid_t;
+typedef unsigned int    __kernel_uid_t;
+typedef unsigned int    __kernel_gid_t;
+typedef unsigned long   __kernel_size_t;
+typedef long            __kernel_ssize_t;
+typedef long            __kernel_ptrdiff_t;
+typedef long            __kernel_time_t;
+typedef long            __kernel_suseconds_t;
+typedef long            __kernel_clock_t;
+typedef int             __kernel_daddr_t;
+typedef char *          __kernel_caddr_t;
+typedef unsigned long   __kernel_sigset_t;      /* at least 32 bits */
+typedef unsigned short  __kernel_uid16_t;
+typedef unsigned short  __kernel_gid16_t;
+typedef int             __kernel_clockid_t;
+typedef int             __kernel_timer_t;
+
+
+typedef __kernel_uid_t __kernel_old_uid_t;
+typedef __kernel_gid_t __kernel_old_gid_t;
+typedef __kernel_uid_t __kernel_uid32_t;
+typedef __kernel_gid_t __kernel_gid32_t;
+
+typedef __kernel_uid32_t        uid_t;
+typedef __kernel_gid32_t        gid_t;
+typedef __kernel_uid16_t        uid16_t;
+typedef __kernel_gid16_t        gid16_t;
+
+typedef __kernel_clock_t        clock_t;
+
+typedef __kernel_old_uid_t      old_uid_t;
+typedef __kernel_old_gid_t      old_gid_t;
+
+struct __old_kernel_stat {
+        unsigned short st_dev;
+        unsigned short st_ino;
+        unsigned short st_mode;
+        unsigned short st_nlink;
+        unsigned short st_uid;
+        unsigned short st_gid;
+        unsigned short st_rdev;
+        unsigned int  st_size;
+        unsigned int  st_atime;
+        unsigned int  st_mtime;
+        unsigned int  st_ctime;
+};
+
+struct tms {
+        int tms_utime;
+        int tms_stime;
+        int tms_cutime;
+        int tms_cstime;
+};
+
+struct oldold_utsname {
+        char sysname[9];
+        char nodename[9];
+        char release[9];
+        char version[9];
+        char machine[9];
+};
+
+struct ustat {
+        int                     f_tfree;
+        unsigned int           f_tinode;
+        char                    f_fname[6];
+        char                    f_fpack[6];
+};
+
+typedef void __signalfn_t(int);
+
+typedef __signalfn_t *__sighandler_t;
+
+typedef void __restorefn_t(void);
+typedef __restorefn_t *__sigrestore_t;
+
+typedef unsigned long sigset_t;
+
+struct sigaction {
+        __sighandler_t sa_handler;
+        unsigned long sa_flags;
+        __sigrestore_t sa_restorer;
+        sigset_t sa_mask;               /* mask last for extensibility */
+};
+
+struct rlimit {
+        unsigned long   rlim_cur;
+        unsigned long   rlim_max;
+};
+
+//typedef long __kernel_time_t;
+//typedef __kernel_time_t         time_t;
+typedef long __kernel_suseconds_t;
+typedef __kernel_suseconds_t    suseconds_t;
+struct timeval {
+        time_t          tv_sec;         /* seconds */
+        suseconds_t     tv_usec;        /* microseconds */
+};
+
+struct  rusage {
+        struct timeval ru_utime;        /* user time used */
+        struct timeval ru_stime;        /* system time used */
+        long    ru_maxrss;              /* maximum resident set size */
+        long    ru_ixrss;               /* integral shared memory size */
+        long    ru_idrss;               /* integral unshared data size */
+        long    ru_isrss;               /* integral unshared stack size */
+        long    ru_minflt;              /* page reclaims */
+        long    ru_majflt;              /* page faults */
+        long    ru_nswap;               /* swaps */
+        long    ru_inblock;             /* block input operations */
+        long    ru_oublock;             /* block output operations */
+        long    ru_msgsnd;              /* messages sent */
+        long    ru_msgrcv;              /* messages received */
+        long    ru_nsignals;            /* signals received */
+        long    ru_nvcsw;               /* voluntary context switches */
+        long    ru_nivcsw;              /* involuntary " */
+};
+
+struct timezone {
+        int     tz_minuteswest; /* minutes west of Greenwich */
+        int     tz_dsttime;     /* type of dst correction */
+};
+
+
+#define __NFDBITS       (8 * sizeof(unsigned long))
+#define __FD_SETSIZE    1024
+#define __FDSET_LONGS   (__FD_SETSIZE/__NFDBITS)
+
+typedef struct {
+        unsigned long fds_bits [__FDSET_LONGS];
+} __kernel_fd_set;
+
+typedef __kernel_fd_set         fd_set;
+
+typedef struct {
+        int     val[2];
+} __kernel_fsid_t;
+
+struct statfs {
+        long f_type;
+        long f_bsize;
+        long f_blocks;
+        long f_bfree;
+        long f_bavail;
+        long f_files;
+        long f_ffree;
+        __kernel_fsid_t f_fsid;
+        long f_namelen;
+        long f_frsize;
+        long f_spare[5];
+};
+
+struct itimerval {
+        struct timeval it_interval;     /* timer interval */
+        struct timeval it_value;        /* current value */
+};
+
+struct new_utsname {
+        char sysname[65];
+        char nodename[65];
+        char release[65];
+        char version[65];
+        char machine[65];
+        char domainname[65];
+};
+
+struct vm86_regs {
+/*
+ * normal regs, with special meaning for the segment descriptors..
+ */
+        long ebx;
+        long ecx;
+        long edx;
+        long esi;
+        long edi;
+        long ebp;
+        long eax;
+        long __null_ds;
+        long __null_es;
+        long __null_fs;
+        long __null_gs;
+        long orig_eax;
+        long eip;
+        unsigned short cs, __csh;
+        long eflags;
+        long esp;
+        unsigned short ss, __ssh;
+/*
+ * these are specific to v86 mode:
+ */
+        unsigned short es, __esh;
+        unsigned short ds, __dsh;
+        unsigned short fs, __fsh;
+        unsigned short gs, __gsh;
+};
+
+struct revectored_struct {
+        unsigned long __map[8];                 /* 256 bits */
+};
+
+struct vm86_struct {
+        struct vm86_regs regs;
+        unsigned long flags;
+        unsigned long screen_bitmap;
+        unsigned long cpu_type;
+        struct revectored_struct int_revectored;
+        struct revectored_struct int21_revectored;
+};
+
+
+
+struct sysinfo {
+        long uptime;                    /* Seconds since boot */
+        unsigned long loads[3];         /* 1, 5, and 15 minute load averages */
+        unsigned long totalram;         /* Total usable main memory size */
+        unsigned long freeram;          /* Available memory size */
+        unsigned long sharedram;        /* Amount of shared memory */
+        unsigned long bufferram;        /* Memory used by buffers */
+        unsigned long totalswap;        /* Total swap space size */
+        unsigned long freeswap;         /* swap space still available */
+        unsigned short procs;           /* Number of current processes */
+        unsigned short pad;             /* explicit padding for m68k */
+        unsigned long totalhigh;        /* Total high memory size */
+        unsigned long freehigh;         /* Available high memory size */
+        unsigned int mem_unit;          /* Memory unit size in bytes */
+        char _f[20-2*sizeof(long)-sizeof(int)]; /* Padding: libc5 uses this.. */
+};
+
+struct timex {
+        unsigned int modes;     /* mode selector */
+        long offset;            /* time offset (usec) */
+        long freq;              /* frequency offset (scaled ppm) */
+        long maxerror;          /* maximum error (usec) */
+        long esterror;          /* estimated error (usec) */
+        int status;             /* clock command/status */
+        long constant;          /* pll time constant */
+        long precision;         /* clock precision (usec) (read only) */
+        long tolerance;         /* clock frequency tolerance (ppm)
+                                 * (read only)
+                                 */
+        struct timeval time;    /* (read only) */
+        long tick;              /* (modified) usecs between clock ticks */
+
+        long ppsfreq;           /* pps frequency (scaled ppm) (ro) */
+        long jitter;            /* pps jitter (us) (ro) */
+        int shift;              /* interval duration (s) (shift) (ro) */
+        long stabil;            /* pps stability (scaled ppm) (ro) */
+        long jitcnt;            /* jitter limit exceeded (ro) */
+        long calcnt;            /* calibration intervals (ro) */
+        long errcnt;            /* calibration errors (ro) */
+        long stbcnt;            /* stability limit exceeded (ro) */
+
+        int tai;                /* TAI offset (ro) */
+
+        int  :32; int  :32; int  :32; int  :32;
+        int  :32; int  :32; int  :32; int  :32;
+        int  :32; int  :32; int  :32;
+};
+typedef long long       __kernel_loff_t;
+typedef __kernel_loff_t         loff_t;
+
+struct sched_param {
+        int sched_priority;
+};
+
+struct timespec {
+        time_t  tv_sec;         /* seconds */
+        long    tv_nsec;        /* nanoseconds */
+};
+
+struct vm86plus_info_struct {
+        unsigned long force_return_for_pic:1;
+        unsigned long vm86dbg_active:1;       /* for debugger */
+        unsigned long vm86dbg_TFpendig:1;     /* for debugger */
+        unsigned long unused:28;
+        unsigned long is_vm86pus:1;           /* for vm86 internal use */
+        unsigned char vm86dbg_intxxtab[32];   /* for debugger */
+};
+
+struct vm86plus_struct {
+        struct vm86_regs regs;
+        unsigned long flags;
+        unsigned long screen_bitmap;
+        unsigned long cpu_type;
+        struct revectored_struct int_revectored;
+        struct revectored_struct int21_revectored;
+        struct vm86plus_info_struct vm86plus;
+};
+
+
+#define SI_MAX_SIZE     128
+#define __ARCH_SI_PREAMBLE_SIZE (3 * sizeof(int))
+#define SI_PAD_SIZE     ((SI_MAX_SIZE - __ARCH_SI_PREAMBLE_SIZE) / sizeof(int))
+#define __ARCH_SI_UID_T uid_t
+typedef int             __kernel_pid_t;
+typedef __kernel_pid_t          pid_t;
+typedef int             __kernel_timer_t;
+typedef __kernel_timer_t        timer_t;
+typedef union sigval {
+        int sival_int;
+        void *sival_ptr;
+} sigval_t;
+
+typedef struct siginfo {
+        int si_signo;
+        int si_errno;
+        int si_code;
+        union {
+                int _pad[SI_PAD_SIZE];
+
+                /* kill() */
+                struct {
+                        pid_t _pid;             /* sender's pid */
+                        __ARCH_SI_UID_T _uid;   /* sender's uid */
+                } _kill;
+
+                /* POSIX.1b timers */
+                struct {
+                        timer_t _tid;           /* timer id */
+                        int _overrun;           /* overrun count */
+//                        char _pad[sizeof( __ARCH_SI_UID_T) - sizeof(int)];
+                        sigval_t _sigval;       /* same as below */
+                        int _sys_private;       /* not to be passed to user */
+                } _timer;
+
+                /* POSIX.1b signals */
+                struct {
+                        pid_t _pid;             /* sender's pid */
+                        __ARCH_SI_UID_T _uid;   /* sender's uid */
+                        sigval_t _sigval;
+                } _rt;
+
+                /* SIGCHLD */
+                struct {
+                        pid_t _pid;             /* which child */
+                        __ARCH_SI_UID_T _uid;   /* sender's uid */
+                        int _status;            /* exit code */
+                        clock_t _utime;
+                        clock_t _stime;
+                } _sigchld;
+
+                /* SIGILL, SIGFPE, SIGSEGV, SIGBUS */
+                struct {
+                        void __user *_addr; /* faulting insn/memory ref. */
+                } _sigfault;
+
+                /* SIGPOLL */
+                struct {
+                        __ARCH_SI_BAND_T _band; /* POLL_IN, POLL_OUT, POLL_MSG */
+                        int _fd;
+                } _sigpoll;
+        } _sifields;
+} siginfo_t;
+
+
+typedef struct sigaltstack {
+        void __user *ss_sp;
+        int ss_flags;
+        size_t ss_size;
+} stack_t;
+struct stat64 {
+        unsigned long long      st_dev;
+        unsigned char   __pad0[4];
+
+        unsigned long   __st_ino;
+
+        unsigned int    st_mode;
+        unsigned int    st_nlink;
+
+        unsigned long   st_uid;
+        unsigned long   st_gid;
+
+        unsigned long long      st_rdev;
+        unsigned char   __pad3[4];
+
+        long long       st_size;
+        unsigned long   st_blksize;
+
+        /* Number 512-byte blocks allocated. */
+        unsigned long long      st_blocks;
+
+        unsigned long   st_atime;
+        unsigned long   st_atime_nsec;
+
+        unsigned long   st_mtime;
+        unsigned int    st_mtime_nsec;
+
+        unsigned long   st_ctime;
+        unsigned long   st_ctime_nsec;
+
+        unsigned long long      st_ino;
+};
+typedef unsigned long int __cpu_mask;
+
+# define __CPU_SETSIZE  1024
+# define __NCPUBITS     (8 * sizeof (__cpu_mask))
+
+typedef struct
+{
+  __cpu_mask __bits[__CPU_SETSIZE / __NCPUBITS];
+} cpu_set_t;
+
+struct user_desc {
+        unsigned int  entry_number;
+        unsigned int  base_addr;
+        unsigned int  limit;
+        unsigned int  seg_32bit:1;
+        unsigned int  contents:2;
+        unsigned int  read_exec_only:1;
+        unsigned int  limit_in_pages:1;
+        unsigned int  seg_not_present:1;
+        unsigned int  useable:1;
+};
+
+typedef unsigned long   aio_context_t;
+
+struct io_event {
+        unsigned __int64           data;           /* the data field from the iocb */
+        unsigned __int64            obj;            /* what iocb this event came from */
+        signed __int64            res;            /* result code for this event */
+        signed __int64            res2;           /* secondary result */
+};
+struct itimerspec {
+        struct timespec it_interval;    /* timer period */
+        struct timespec it_value;       /* timer expiration */
+};
+
+struct statfs64 {
+        long f_type;
+        long f_bsize;
+        long f_blocks;
+        long f_bfree;
+        long f_bavail;
+        long f_files;
+        long f_ffree;
+        __kernel_fsid_t f_fsid;
+        long f_namelen;
+        long f_frsize;
+        long f_spare[5];
+};
+
+struct mq_attr {
+        long    mq_flags;       /* message queue flags                  */
+        long    mq_maxmsg;      /* maximum number of messages           */
+        long    mq_msgsize;     /* maximum message size                 */
+        long    mq_curmsgs;     /* number of messages currently queued  */
+        long    reserved[4];  /* ignored for input, zeroed for output */
+};
+
+#define MAP_FAILED	((void *) -1)
+
+#define MAP_32BIT       0x40            /* only give out 32bit addresses */
+
+#define MAP_GROWSDOWN   0x0100          /* stack-like segment */
+#define MAP_DENYWRITE   0x0800          /* ETXTBSY */
+#define MAP_EXECUTABLE  0x1000          /* mark it as an executable */
+#define MAP_LOCKED      0x2000          /* pages are locked */
+#define MAP_NORESERVE   0x4000          /* don't check for reservations */
+#define MAP_POPULATE    0x8000          /* populate (prefault) pagetables */
+#define MAP_NONBLOCK    0x10000         /* do not block on IO */
+#define MAP_STACK       0x20000         /* give out an address that is best suited for process/thread stacks */
+
+#define MCL_CURRENT     1               /* lock all current mappings */
+#define MCL_FUTURE      2               /* lock all future mappings */
+
+struct iovec
+{
+        void __user *iov_base;  /* BSD uses caddr_t (1003.1g requires void *) */
+        __kernel_size_t iov_len; /* Must be size_t (1003.1g) */
+};
+
+struct epoll_event {
+        unsigned int events;
+        unsigned __int64 data;
+} ;
+
+struct pollfd {
+        int fd;
+        short events;
+        short revents;
+};
+
+/* Flags for set_mempolicy */
+#define MPOL_F_STATIC_NODES     (1 << 15)
+#define MPOL_F_RELATIVE_NODES   (1 << 14)
+
+/*
+ * MPOL_MODE_FLAGS is the union of all possible optional mode flags passed to
+ * either set_mempolicy() or mbind().
+ */
+#define MPOL_MODE_FLAGS (MPOL_F_STATIC_NODES | MPOL_F_RELATIVE_NODES)
+
+/* Flags for get_mempolicy */
+#define MPOL_F_NODE     (1<<0)  /* return next IL mode instead of node mask */
+#define MPOL_F_ADDR     (1<<1)  /* look up vma using address */
+#define MPOL_F_MEMS_ALLOWED (1<<2) /* return allowed memories */
+
+/* Flags for mbind */
+#define MPOL_MF_STRICT  (1<<0)  /* Verify existing pages in the mapping */
+#define MPOL_MF_MOVE    (1<<1)  /* Move pages owned by this process to conform to mapping */
+#define MPOL_MF_MOVE_ALL (1<<2) /* Move every page to conform to mapping */
+#define MPOL_MF_INTERNAL (1<<3) /* Internal flags start here */
+
+/*
+ * Internal flags that share the struct mempolicy flags word with
+ * "mode flags".  These flags are allocated from bit 0 up, as they
+ * are never OR'ed into the mode in mempolicy API arguments.
+ */
+#define MPOL_F_SHARED  (1 << 0) /* identify shared policies */
+#define MPOL_F_LOCAL   (1 << 1) /* preferred local allocation */
+
+typedef unsigned int __u32;
+typedef signed int __s32;
+typedef unsigned __int64 __u64;
+typedef signed __int64 __s64;
+
+/* resource get request flags */
+#define IPC_CREAT  00001000   /* create if key is nonexistent */
+#define IPC_EXCL   00002000   /* fail if key exists */
+#define IPC_NOWAIT 00004000   /* return error on wait */
+
+/* these fields are used by the DIPC package so the kernel as standard
+   should avoid using them if possible */
+
+#define IPC_DIPC 00010000  /* make it distributed */
+#define IPC_OWN  00020000  /* this machine is the DIPC owner */
+
+/*
+ * Control commands used with semctl, msgctl and shmctl
+ * see also specific commands in sem.h, msg.h and shm.h
+ */
+#define IPC_RMID 0     /* remove resource */
+#define IPC_SET  1     /* set ipc_perm options */
+#define IPC_STAT 2     /* get ipc_perm options */
+#define IPC_INFO 3     /* see ipcs */
+
+/*
+ * Version flags for semctl, msgctl, and shmctl commands
+ * These are passed as bitflags or-ed with the actual command
+ */
+#define IPC_OLD 0       /* Old version (no 32-bit UID support on many
+                           architectures) */
+#define IPC_64  0x0100  /* New version (support 32-bit UIDs, bigger
+                           message sizes, etc. */
+#define MSG_STAT 11
+#define MSG_INFO 12
+
+/* msgrcv options */
+#define MSG_NOERROR     010000  /* no error if message is too big */
+#define MSG_EXCEPT      020000  /* recv any msg except of specified type.*/
+
+struct msqid_ds {
+        struct ipc_perm msg_perm;
+        struct msg *msg_first;          /* first message on queue,unused  */
+        struct msg *msg_last;           /* last message in queue,unused */
+        __kernel_time_t msg_stime;      /* last msgsnd time */
+        __kernel_time_t msg_rtime;      /* last msgrcv time */
+        __kernel_time_t msg_ctime;      /* last change time */
+        unsigned long  msg_lcbytes;     /* Reuse junk fields for 32 bit */
+        unsigned long  msg_lqbytes;     /* ditto */
+        unsigned short msg_cbytes;      /* current number of bytes on queue */
+        unsigned short msg_qnum;        /* number of messages in queue */
+        unsigned short msg_qbytes;      /* max number of bytes on queue */
+        __kernel_ipc_pid_t msg_lspid;   /* pid of last msgsnd */
+        __kernel_ipc_pid_t msg_lrpid;   /* last receive pid */
+};
+
+
+struct msgbuf {
+        long mtype;         /* type of message */
+        char mtext[1];      /* message text */
+};
+
+/* buffer for msgctl calls IPC_INFO, MSG_INFO */
+struct msginfo {
+        int msgpool;
+        int msgmap;
+        int msgmax;
+        int msgmnb;
+        int msgmni;
+        int msgssz;
+        int msgtql;
+        unsigned short  msgseg;
+};
+
+/*
+ * Scaling factor to compute msgmni:
+ * the memory dedicated to msg queues (msgmni * msgmnb) should occupy
+ * at most 1/MSG_MEM_SCALE of the lowmem (see the formula in ipc/msg.c):
+ * up to 8MB       : msgmni = 16 (MSGMNI)
+ * 4 GB            : msgmni = 8K
+ * more than 16 GB : msgmni = 32K (IPCMNI)
+ */
+#define MSG_MEM_SCALE 32
+
+#define MSGMNI    16   /* <= IPCMNI */     /* max # of msg queue identifiers */
+#define MSGMAX  8192   /* <= INT_MAX */   /* max size of message (bytes) */
+#define MSGMNB 16384   /* <= INT_MAX */   /* default max size of a message queue */
+
+/* unused */
+#define MSGPOOL (MSGMNI * MSGMNB / 1024) /* size in kbytes of message pool */
+#define MSGTQL  MSGMNB            /* number of system message headers */
+#define MSGMAP  MSGMNB            /* number of entries in message map */
+#define MSGSSZ  16                /* message segment size */
+#define __MSGSEG ((MSGPOOL * 1024) / MSGSSZ) /* max no. of segments */
+#define MSGSEG (__MSGSEG <= 0xffff ? __MSGSEG : 0xffff)
+
+/* one msg_msg structure for each message */
+struct list_head {
+        struct list_head *next, *prev;
+};
+
+struct msg_msgseg {
+        struct msg_msgseg* next;
+        /* the next part of the message follows immediately */
+};
+
+
+struct msg_msg {
+        struct list_head m_list;
+        long  m_type;
+        int m_ts;           /* message text size */
+        struct msg_msgseg* next;
+        void *security;
+        /* the actual message follows immediately */
+};
+
+/* one msq_queue structure for each present queue on the system */
+struct msg_queue {
+        struct kern_ipc_perm q_perm;
+        time_t q_stime;                 /* last msgsnd time */
+        time_t q_rtime;                 /* last msgrcv time */
+        time_t q_ctime;                 /* last change time */
+        unsigned long q_cbytes;         /* current number of bytes on queue */
+        unsigned long q_qnum;           /* number of messages in queue */
+        unsigned long q_qbytes;         /* max number of bytes on queue */
+        pid_t q_lspid;                  /* pid of last msgsnd */
+        pid_t q_lrpid;                  /* last receive pid */
+
+        struct list_head q_messages;
+        struct list_head q_receivers;
+        struct list_head q_senders;
+};
+
+/* permission flag for shmget */
+#define SHM_R           0400    /* or S_IRUGO from <linux/stat.h> */
+#define SHM_W           0200    /* or S_IWUGO from <linux/stat.h> */
+
+/* mode for attach */
+#define SHM_RDONLY      010000  /* read-only access */
+#define SHM_RND         020000  /* round attach address to SHMLBA boundary */
+#define SHM_REMAP       040000  /* take-over region on attach */
+#define SHM_EXEC        0100000 /* execution access */
+
+/* super user shmctl commands */
+#define SHM_LOCK        11
+#define SHM_UNLOCK      12
+
+/* ipcs ctl commands */
+#define SHM_STAT        13
+#define SHM_INFO        14
+
+/* Obsolete, used only for backwards compatibility */
+struct  shminfo {
+        int shmmax;
+        int shmmin;
+        int shmmni;
+        int shmseg;
+        int shmall;
+};
+
+struct shm_info {
+        int used_ids;
+        unsigned long shm_tot;  /* total allocated shm */
+        unsigned long shm_rss;  /* total resident shm */
+        unsigned long shm_swp;  /* total swapped shm */
+        unsigned long swap_attempts;
+        unsigned long swap_successes;
+};
+
+struct  seminfo {
+        int semmap;
+        int semmni;
+        int semmns;
+        int semmnu;
+        int semmsl;
+        int semopm;
+        int semume;
+        int semusz;
+        int semvmx;
+        int semaem;
+};
+
+#define SEMMNI  128             /* <= IPCMNI  max # of semaphore identifiers */
+#define SEMMSL  250             /* <= 8 000 max num of semaphores per id */
+#define SEMMNS  (SEMMNI*SEMMSL) /* <= INT_MAX max # of semaphores in system */
+#define SEMOPM  32              /* <= 1 000 max num of ops per semop call */
+#define SEMVMX  32767           /* <= 32767 semaphore maximum value */
+#define SEMAEM  SEMVMX          /* adjust on exit max value */
+
+
+#define F_DUPFD         0       /* dup */
+#define F_GETFD         1       /* get close_on_exec */
+#define F_SETFD         2       /* set/clear close_on_exec */
+#define F_GETFL         3       /* get file->f_flags */
+#define F_SETFL         4       /* set file->f_flags */
+#ifndef F_GETLK
+#define F_GETLK         5
+#define F_SETLK         6
+#define F_SETLKW        7
+#endif
+#ifndef F_SETOWN
+#define F_SETOWN        8       /* for sockets. */
+#define F_GETOWN        9       /* for sockets. */
+#endif
+#ifndef F_SETSIG
+#define F_SETSIG        10      /* for sockets. */
+#define F_GETSIG        11      /* for sockets. */
+#endif
+
+struct shmid_ds {
+        struct ipc_perm         shm_perm;       /* operation perms */
+        int                     shm_segsz;      /* size of segment (bytes) */
+        __kernel_time_t         shm_atime;      /* last attach time */
+        __kernel_time_t         shm_dtime;      /* last detach time */
+        __kernel_time_t         shm_ctime;      /* last change time */
+        __kernel_ipc_pid_t      shm_cpid;       /* pid of creator */
+        __kernel_ipc_pid_t      shm_lpid;       /* pid of last operator */
+        unsigned short          shm_nattch;     /* no. of current attaches */
+        unsigned short          shm_unused;     /* compatibility */
+        void                    *shm_unused2;   /* ditto - used by DIPC */
+        void                    *shm_unused3;   /* unused */
+};
+
+#define SEM_UNDO        0x1000  /* undo the operation on exit */
+
+/* semctl Command Definitions. */
+#define GETPID  11       /* get sempid */
+#define GETVAL  12       /* get semval */
+#define GETALL  13       /* get all semval's */
+#define GETNCNT 14       /* get semncnt */
+#define GETZCNT 15       /* get semzcnt */
+#define SETVAL  16       /* set semval */
+#define SETALL  17       /* set all semval's */
+
+/* ipcs ctl cmds */
+#define SEM_STAT 18
+#define SEM_INFO 19
+
+#define __ARCH_FLOCK_PAD
+struct flock {
+        short   l_type;
+        short   l_whence;
+        off_t   l_start;
+        off_t   l_len;
+        pid_t   l_pid;
+        __ARCH_FLOCK_PAD
+};
+
+#define F_GETLK64       12      /*  using 'struct flock64' */
+#define F_SETLK64       13
+#define F_SETLKW64      14
+#define __ARCH_FLOCK64_PAD
+
+struct flock64 {
+        short  l_type;
+        short  l_whence;
+        loff_t l_start;
+        loff_t l_len;
+        pid_t  l_pid;
+        __ARCH_FLOCK64_PAD
+};
+
+struct msghdr {
+        void    *       msg_name;       /* Socket name                  */
+        int             msg_namelen;    /* Length of name               */
+        struct iovec *  msg_iov;        /* Data blocks                  */
+        __kernel_size_t msg_iovlen;     /* Number of blocks             */
+        void    *       msg_control;    /* Per protocol magic (eg BSD file descriptor passing) */
+        __kernel_size_t msg_controllen; /* Length of cmsg list */
+        unsigned        msg_flags;
+};
+struct __sysctl_args {
+        int __user *name;
+        int nlen;
+        void __user *oldval;
+        size_t __user *oldlenp;
+        void __user *newval;
+        size_t newlen;
+        unsigned long __unused[4];
+};
 /* syscall descriptors */
 syscall_desc_t syscall_desc[SYSCALL_MAX] = {
 	/* __NR_restart_syscall */
@@ -268,7 +1065,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
 	/* __NR_setgroups16 */
 	{ 2, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
 	/* __NR_select */
-	{ 5, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 
+	{ 5, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set),
 	sizeof(struct timeval), 0 }, NULL, NULL },
 	/* __NR_symlink */
 	{ 2, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
@@ -393,7 +1190,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
 	/* __NR_getdents */
 	{ 3, 0, 1, { 0, sizeof(struct linux_dirent), 0, 0, 0, 0 }, NULL, NULL },
 	/* __NR_select */
-	{ 5, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 
+	{ 5, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set),
 	sizeof(struct timeval), 0 }, NULL, NULL },
 	/* __NR_flock */
 	{ 2, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
@@ -675,7 +1472,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
 	/* __NR_mq_unlink */
 	{ 1, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
 	/* __NR_mq_timedsend */
-	{ 5, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },	
+	{ 5, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
 	/* __NR_mq_timedreceive */
 	{ 5, 1, 0, { 0, 0, 0, 0, 0, 0 }, NULL, post_mq_timedreceive_hook },
 	/* 280 */
@@ -736,7 +1533,7 @@ syscall_desc_t syscall_desc[SYSCALL_MAX] = {
 	/* __NR_faccessat */
 	{ 3, 0, 0, { 0, 0, 0, 0, 0, 0 }, NULL, NULL },
 	/* __NR_pselect6 */
-	{ 6, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 0, 0 }, 
+	{ 6, 0, 1, { 0, sizeof(fd_set), sizeof(fd_set), sizeof(fd_set), 0, 0 },
 	NULL, NULL },
 	/* __NR_ppoll */
 	{ 5, 1, 0, { 0, 0, 0, 0, 0, 0 }, NULL, post_poll_hook },
@@ -882,7 +1679,7 @@ syscall_set_post(syscall_desc_t *desc, void (* post)(syscall_ctx_t*))
 
 	/* update the post-syscall callback */
 	desc->post = post;
-	
+
 	/* set the save arguments flag */
 	desc->save_args = 1;
 
@@ -951,7 +1748,7 @@ post_read_hook(syscall_ctx_t *ctx)
 	/* read()/readlink() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret <= 0))
 		return;
-	
+
 	/* clear the tag bits */
 	tagmap_clrn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
 }
@@ -989,7 +1786,7 @@ post_readlinkat_hook(syscall_ctx_t *ctx)
 	/* readlinkat() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret <= 0))
 		return;
-	
+
 	/* clear the tag bits */
 	tagmap_clrn(ctx->arg[SYSCALL_ARG2], (size_t)ctx->ret);
 }
@@ -1015,7 +1812,7 @@ post_mmap_hook(syscall_ctx_t *ctx)
 	if (unlikely((int)ctx->arg[SYSCALL_ARG3] & MAP_GROWSDOWN))
 		/* fix starting address */
 		ctx->ret = ctx->ret - offset;
-	
+
 	/* emulate the clear_tag() call */
 	tagmap_clrn((size_t)ctx->ret, offset);
 }
@@ -1027,7 +1824,7 @@ post_readv_hook(syscall_ctx_t *ctx)
 	/* iterators */
 	int	i;
 	struct	iovec *iov;
-	
+
 	/* bytes copied in a iovec structure */
 	size_t	iov_tot;
 
@@ -1037,7 +1834,7 @@ post_readv_hook(syscall_ctx_t *ctx)
 	/* (p)readv() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret <= 0))
 		return;
-	
+
 	/* iterate the iovec structures */
 	for (i = 0; i < (int)ctx->arg[SYSCALL_ARG2] && tot > 0; i++) {
 		/* get an iovec  */
@@ -1046,7 +1843,7 @@ post_readv_hook(syscall_ctx_t *ctx)
 		/* get the length of the iovec */
 		iov_tot = (tot >= (size_t)iov->iov_len) ?
 				(size_t)iov->iov_len : tot;
-	
+
 		/* clear the tag bits */
 		tagmap_clrn((size_t)iov->iov_base, iov_tot);
 
@@ -1085,7 +1882,7 @@ post_poll_hook(syscall_ctx_t *ctx)
 	for (i = 0; i < (size_t)ctx->arg[SYSCALL_ARG1]; i++) {
 		/* get pollfd */
 		pfd = ((struct pollfd *)ctx->arg[SYSCALL_ARG0]) + i;
-	
+
 		/* clear the tag bits */
 		tagmap_clrn((size_t)&pfd->revents, sizeof(short));
 	}
@@ -1101,7 +1898,7 @@ post_mq_timedreceive_hook(syscall_ctx_t *ctx)
 
 	/* clear the tag bits */
 	tagmap_clrn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
-	
+
 	/* priority argument is supplied */
 	if ((size_t *)ctx->arg[SYSCALL_ARG3] != NULL)
 		/* clear the tag bits */
@@ -1115,7 +1912,7 @@ post_get_mempolicy_hook(syscall_ctx_t *ctx)
 	/* get_mempolicy() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
 		return;
-	
+
 	/* flags is zero */
 	if ((unsigned long)ctx->arg[SYSCALL_ARG4] == 0) {
 		/* clear the tag bits */
@@ -1135,7 +1932,7 @@ post_get_mempolicy_hook(syscall_ctx_t *ctx)
 		/* done */
 		return;
 	}
-	
+
 	/* MPOL_F_ADDR is set on flags */
 	if (((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_ADDR) != 0 &&
 		((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_NODE) == 0) {
@@ -1153,16 +1950,16 @@ post_get_mempolicy_hook(syscall_ctx_t *ctx)
 		/* done */
 		return;
 	}
-	
+
 	/* MPOL_F_NODE & MPOL_F_ADDR is set on flags */
-	if (((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_ADDR) != 0 && 
+	if (((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_ADDR) != 0 &&
 		((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_NODE) != 0) {
 		/* clear the tag bits */
 		tagmap_clrn(ctx->arg[SYSCALL_ARG0], sizeof(int));
 		/* done */
 		return;
 	}
-	
+
 	/* MPOL_F_NODE is set on flags */
 	if (((unsigned long)ctx->arg[SYSCALL_ARG4] & MPOL_F_NODE) != 0) {
 		/* clear the tag bits */
@@ -1286,11 +2083,11 @@ post_quotactl_hook(syscall_ctx_t *ctx)
 	/* quotactl() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
 		return;
-	
+
 	/* different offset ranges */
 	switch ((int)ctx->arg[SYSCALL_ARG0]) {
 		case Q_GETFMT:
-			off = sizeof(__u32); 
+			off = sizeof(__u32);
 			break;
 		case Q_GETINFO:
 			off = sizeof(struct if_dqinfo);
@@ -1320,7 +2117,7 @@ post_modify_ldt_hook(syscall_ctx_t *ctx)
 	/* modify_ldt() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret <= 0))
 		return;
-	
+
 	/* clear the tag bits */
 	tagmap_clrn(ctx->arg[SYSCALL_ARG1], (size_t)ctx->ret);
 }
@@ -1339,7 +2136,7 @@ post_ipc_hook(syscall_ctx_t *ctx)
 			/* msgctl() was not successful; optimized branch */
 			if (unlikely((long)ctx->ret < 0))
 				return;
-			
+
 			/* fix the cmd parameter */
 			ctx->arg[SYSCALL_ARG2] -= IPC_FIX;
 
@@ -1367,7 +2164,7 @@ post_ipc_hook(syscall_ctx_t *ctx)
 			/* shmctl() was not successful; optimized branch */
 			if (unlikely((long)ctx->ret < 0))
 				return;
-			
+
 			/* fix the cmd parameter */
 			ctx->arg[SYSCALL_ARG2] -= IPC_FIX;
 
@@ -1395,10 +2192,10 @@ post_ipc_hook(syscall_ctx_t *ctx)
 			/* semctl() was not successful; optimized branch */
 			if (unlikely((long)ctx->ret < 0))
 				return;
-			
-			/* get the semun structure */	
+
+			/* get the semun structure */
 			su = (union semun *)ctx->arg[SYSCALL_ARG4];
-			
+
 			/* fix the cmd parameter */
 			ctx->arg[SYSCALL_ARG3] -= IPC_FIX;
 
@@ -1426,7 +2223,7 @@ post_ipc_hook(syscall_ctx_t *ctx)
 			/* msgrcv() was not successful; optimized branch */
 			if (unlikely((long)ctx->ret <= 0))
 				return;
-			
+
 			/* clear the tag bits */
 			tagmap_clrn(ctx->arg[SYSCALL_ARG4],
 					(size_t)ctx->ret + sizeof(long));
@@ -1444,7 +2241,7 @@ post_fcntl_hook(syscall_ctx_t *ctx)
 	/* fcntl() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
 		return;
-	
+
 	/* differentiate based on the cmd argument */
 	switch((int)ctx->arg[SYSCALL_ARG1]) {
 		/* F_GETLK */
@@ -1486,10 +2283,10 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 	/* iterators */
 	size_t	i;
 	struct	iovec *iov;
-	
+
 	/* total bytes received */
 	size_t	tot;
-	
+
 	/* socket call arguments */
 	unsigned long	*args = (unsigned long *)ctx->arg[SYSCALL_ARG1];
 
@@ -1508,7 +2305,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 				/* clear the tag bits */
 				tagmap_clrn(args[SYSCALL_ARG1],
 					*((int *)args[SYSCALL_ARG2]));
-				
+
 				/* clear the tag bits */
 				tagmap_clrn(args[SYSCALL_ARG2], sizeof(int));
 			}
@@ -1517,7 +2314,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 			/* not successful; optimized branch */
 			if (unlikely((long)ctx->ret < 0))
 				return;
-	
+
 			/* clear the tag bits */
 			tagmap_clrn(args[SYSCALL_ARG3], (sizeof(int) * 2));
 			break;
@@ -1525,7 +2322,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 			/* not successful; optimized branch */
 			if (unlikely((long)ctx->ret <= 0))
 				return;
-	
+
 			/* clear the tag bits */
 			tagmap_clrn(args[SYSCALL_ARG1], (size_t)ctx->ret);
 			break;
@@ -1533,7 +2330,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 			/* not successful; optimized branch */
 			if (unlikely((long)ctx->ret <= 0))
 				return;
-	
+
 			/* clear the tag bits */
 			tagmap_clrn(args[SYSCALL_ARG1], (size_t)ctx->ret);
 
@@ -1542,7 +2339,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 				/* clear the tag bits */
 				tagmap_clrn(args[SYSCALL_ARG4],
 					*((int *)args[SYSCALL_ARG5]));
-				
+
 				/* clear the tag bits */
 				tagmap_clrn(args[SYSCALL_ARG5], sizeof(int));
 			}
@@ -1551,11 +2348,11 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 			/* not successful; optimized branch */
 			if (unlikely((long)ctx->ret < 0))
 				return;
-	
+
 			/* clear the tag bits */
 			tagmap_clrn(args[SYSCALL_ARG3],
 					*((int *)args[SYSCALL_ARG4]));
-			
+
 			/* clear the tag bits */
 			tagmap_clrn(args[SYSCALL_ARG4], sizeof(int));
 			break;
@@ -1572,18 +2369,18 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 				/* clear the tag bits */
 				tagmap_clrn((size_t)msg->msg_name,
 					msg->msg_namelen);
-				
+
 				/* clear the tag bits */
 				tagmap_clrn((size_t)&msg->msg_namelen,
 						sizeof(int));
 			}
-			
+
 			/* ancillary data specified */
 			if (msg->msg_control != NULL) {
 				/* clear the tag bits */
 				tagmap_clrn((size_t)msg->msg_control,
 					msg->msg_controllen);
-				
+
 				/* clear the tag bits */
 				tagmap_clrn((size_t)&msg->msg_controllen,
 						sizeof(int));
@@ -1592,7 +2389,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 			/* flags; clear the tag bits */
 			tagmap_clrn((size_t)&msg->msg_flags, sizeof(int));
 
-			/* total bytes received */	
+			/* total bytes received */
 			tot = (size_t)ctx->ret;
 
 			/* iterate the iovec structures */
@@ -1603,10 +2400,10 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 				/* get the length of the iovec */
 				iov_tot = (tot > (size_t)iov->iov_len) ?
 						(size_t)iov->iov_len : tot;
-	
+
 				/* clear the tag bits */
 				tagmap_clrn((size_t)iov->iov_base, iov_tot);
-		
+
 				/* housekeeping */
 				tot -= iov_tot;
 			}
@@ -1630,7 +2427,7 @@ post_socketcall_hook(syscall_ctx_t *ctx)
 	}
 }
 
-/* 
+/*
  * __NR_syslog post syscall hook
  *
  * NOTE: this is not related to syslog(3)
@@ -1678,7 +2475,7 @@ post__sysctl_hook(syscall_ctx_t *ctx)
 	if (sa->oldval != NULL) {
 		/* clear the tag bits */
 		tagmap_clrn((size_t)sa->oldval, *sa->oldlenp);
-		
+
 		/* clear the tag bits */
 		tagmap_clrn((size_t)sa->oldlenp, sizeof(size_t));
 	}
@@ -1699,19 +2496,19 @@ post_recvmmsg_hook(syscall_ctx_t *ctx)
 	/* iterators */
 	size_t	i, j;
 	struct	iovec *iov;
-	
+
 	/* total bytes received */
 	size_t	tot;
-	
+
 	/* recvmmsg() was not successful; optimized branch */
 	if (unlikely((long)ctx->ret < 0))
 		return;
-	
+
 	/* iterate the mmsghdr structures */
 	for (i = 0; i < (size_t)ctx->ret; i++) {
 		/* get the next mmsghdr structure */
 		msg = ((struct mmsghdr *)ctx->arg[SYSCALL_ARG1]) + i;
-	
+
 		/* extract the message header */
 		m = &msg->msg_hdr;
 
@@ -1719,27 +2516,27 @@ post_recvmmsg_hook(syscall_ctx_t *ctx)
 		if (m->msg_name != NULL) {
 			/* clear the tag bits */
 			tagmap_clrn((size_t)m->msg_name, m->msg_namelen);
-			
+
 			/* clear the tag bits */
 			tagmap_clrn((size_t)&m->msg_namelen, sizeof(int));
 		}
-			
+
 		/* ancillary data specified */
 		if (m->msg_control != NULL) {
 			/* clear the tag bits */
 			tagmap_clrn((size_t)m->msg_control, m->msg_controllen);
-				
+
 			/* clear the tag bits */
 			tagmap_clrn((size_t)&m->msg_controllen, sizeof(int));
 		}
 
 		/* flags; clear the tag bits */
 		tagmap_clrn((size_t)&m->msg_flags, sizeof(int));
-		
-		/* total bytes received; clear the tag bits */	
+
+		/* total bytes received; clear the tag bits */
 		tot = (size_t)msg->msg_len;
 		tagmap_clrn((size_t)&msg->msg_len, sizeof(unsigned));
-		
+
 		/* iterate the iovec structures */
 		for (j = 0; j < m->msg_iovlen && tot > 0; j++) {
 			/* get the next I/O vector */
@@ -1748,10 +2545,10 @@ post_recvmmsg_hook(syscall_ctx_t *ctx)
 			/* get the length of the iovec */
 			iov_tot = (tot > (size_t)iov->iov_len) ?
 					(size_t)iov->iov_len : tot;
-	
+
 			/* clear the tag bits */
 			tagmap_clrn((size_t)iov->iov_base, iov_tot);
-	
+
 			/* housekeeping */
 			tot -= iov_tot;
 		}

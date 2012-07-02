@@ -191,6 +191,85 @@ struct file_handle {
 #define SHMCTL	24
 
 #define IPC_FIX	256
+typedef struct {
+        volatile unsigned int lock;
+} raw_spinlock_t;
+
+typedef struct {
+        raw_spinlock_t raw_lock;
+        unsigned int break_lock;
+} spinlock_t;
+
+
+struct kern_ipc_perm
+{
+        spinlock_t      lock;
+        int             deleted;
+        int             id;
+        int           key;
+        unsigned int           uid;
+        unsigned int           gid;
+        unsigned int           cuid;
+        unsigned int           cgid;
+        unsigned int          mode;
+        unsigned long   seq;
+        void            *security;
+};
+struct ipc_perm
+{
+    signed int __key;                      /* Key.  */
+    unsigned int uid;                        /* Owner's user ID.  */
+    unsigned int gid;                        /* Owner's group ID.  */
+    unsigned int cuid;                       /* Creator's user ID.  */
+    unsigned int cgid;                       /* Creator's group ID.  */
+    unsigned short int mode;            /* Read/write permission.  */
+    unsigned short int __pad1;
+    unsigned short int __seq;           /* Sequence number.  */
+    unsigned short int __pad2;
+    unsigned long int __unused1;
+    unsigned long int __unused2;
+};
+struct sem {
+        int     semval;         /* current value */
+        int     sempid;         /* pid of last operation */
+};
+struct sem_undo {
+        struct sem_undo *       proc_next;      /* next entry on this process */
+        struct sem_undo *       id_next;        /* next entry on this semaphore set */
+        int                     semid;          /* semaphore set identifier */
+        short *                 semadj;         /* array of adjustments, one per semaphore */
+};
+
+struct sembuf {
+        unsigned short  sem_num;        /* semaphore index in array */
+        short           sem_op;         /* semaphore operation */
+        short           sem_flg;        /* operation flags */
+};
+
+struct sem_array {
+        struct kern_ipc_perm    sem_perm;       /* permissions .. see ipc.h */
+        time_t                  sem_otime;      /* last semop time */
+        time_t                  sem_ctime;      /* last change time */
+        struct sem              *sem_base;      /* ptr to first semaphore in array */
+        struct sem_queue        *sem_pending;   /* pending operations to be processed */
+        struct sem_queue        **sem_pending_last; /* last pending operation */
+        struct sem_undo         *undo;          /* undo requests on this array */
+        unsigned long           sem_nsems;      /* no. of semaphores in array */
+};
+struct sem_queue {
+        struct sem_queue *      next;    /* next entry in the queue */
+        struct sem_queue **     prev;    /* previous entry in the queue, *(q->prev) == q */
+        struct task_struct*     sleeper; /* this process */
+        struct sem_undo *       undo;    /* undo structure */
+        int                     pid;     /* process id of requesting process */
+        int                     status;  /* completion status of operation */
+        struct sem_array *      sma;     /* semaphore array for operations */
+        int                     id;      /* internal sem id */
+        struct sembuf *         sops;    /* array of pending operations */
+        int                     nsops;   /* number of operations */
+        int                     alter;   /* does the operation alter the array? */
+};
+
 
 struct semid_ds {
         struct ipc_perm sem_perm;               /* permissions .. see ipc.h */

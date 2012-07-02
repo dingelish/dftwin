@@ -46,7 +46,7 @@
 #include "syscall_desc.h"
 #include "tagmap.h"
 #include "branch_pred.h"
-
+#define __func__ __FUNCTION__
 
 /*
  * thread context pointer (TLS emulation); we

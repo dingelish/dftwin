@@ -1,0 +1,33 @@
+# Sample makefile
+
+#!include <win32.mak>
+PIN_HOME    = C:\pinwave\Pinwave\
+
+H_INCLUDE	= /I. /I$(PIN_HOME)\source\include /I$(PIN_HOME)\source\include\gen /I$(PIN_HOME)\extras\xed2-ia32\include /I$(PIN_HOME)\extras\components\include
+OBJS        = libdft_api.obj libdft_core.obj syscall_desc.obj tagmap.obj
+LIB         = libdft.lib
+LIBFLAGS    = /VERBOSE /SUBSYSTEM:WINDOWS  /MACHINE:X86
+CXXFLAGS    = -c -Oy -Ox -Oy /EHsc /D "BIGARRAY_MULTIPLIER=1" /D USING_XED /D TARGET_IA32 /D HOST_IA32 /D TARGET_WINDOWS /D "_SECURE_SCL=0"
+CXX         = cl
+AR          = lib
+
+
+all: sanity $(LIB)
+
+sanity:
+    @-del /S/Q *.obj *.lib
+
+$(LIB): $(OBJS)
+	$(AR) $(ARFLAGS) /OUT:$(@) $(OBJS)
+
+libdft_api.obj: libdft_api.cpp libdft_api.h branch_pred.h
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) libdft_api.cpp
+
+libdft_core.obj: libdft_core.cpp libdft_core.h branch_pred.h
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) libdft_core.cpp
+
+syscall_desc.o: syscall_desc.cpp syscall_desc.h  branch_pred.h
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) syscall_desc.cpp
+
+tagmap.o: tagmap.cpp tagmap.h branch_pred.h
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) tagmap.cpp

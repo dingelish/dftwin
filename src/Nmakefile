@@ -17,17 +17,21 @@ all: sanity $(LIB)
 sanity:
     del /S/Q *.obj *.lib
 
+clean:
+    del /S/Q *.obj *.lib
+
 $(LIB): $(OBJS)
 	$(AR) $(ARFLAGS) /OUT:$(@) $(OBJS)
 
 libdft_api.obj: libdft_api.cpp libdft_api.h branch_pred.h
-	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) libdft_api.cpp
-
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+    $(AR) $(ARFLAGS) /OUT:$(@B).lib $(@B).obj
 libdft_core.obj: libdft_core.cpp libdft_core.h branch_pred.h
-	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) libdft_core.cpp
-
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+    $(AR) $(ARFLAGS) /OUT:$(@B).lib $(@B).obj
 syscall_desc.obj: syscall_desc.cpp syscall_desc.h  branch_pred.h
-	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) syscall_desc.cpp
-
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+    $(AR) $(ARFLAGS) /OUT:$(@B).lib $(@B).obj
 tagmap.obj: tagmap.cpp tagmap.h branch_pred.h
-	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) tagmap.cpp
+	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+    $(AR) $(ARFLAGS) /OUT:$(@B).lib $(@B).obj

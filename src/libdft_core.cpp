@@ -56,7 +56,7 @@ typedef unsigned short uint16_t;
 #define __func__ __FUNCTION__
 /* thread context */
 extern REG	thread_ctx_ptr;
-
+extern FILE *inner_logfile;
 /* tagmap */
 extern uint8_t	*bitmap;
 
@@ -2587,8 +2587,7 @@ ins_inspect(INS ins)
 	/* sanity check */
 	if (unlikely(ins_indx <= XED_ICLASS_INVALID ||
 				ins_indx >= XED_ICLASS_LAST)) {
-		LOG(string(__func__) + ": unknown opcode (opcode=" +
-				decstr(ins_indx) + ")\n");
+		LOG(string(__func__) + ": unknown opcode (opcode=" + decstr(ins_indx) + ")\n");
 
 		/* done */
 		return;

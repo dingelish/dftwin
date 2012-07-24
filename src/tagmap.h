@@ -57,7 +57,7 @@
  * 256 MB, or 128 MB respectively).
  */
 /* #define BITMAP_SZ	384*1024*1024 */
-#define BITMAP_SZ	512*1024*1024
+#define BITMAP_SZ	256*1024*1024
 
 #define BYTE_MASK	0x01U		/* byte mask; 1 bit */
 #define WORD_MASK	0x0003U		/* word mask; 2 sequential bits */

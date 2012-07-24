@@ -1,0 +1,1709 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.6	//
+ALIGN_OFF_MAX	src/tagmap.h	77;"	d
+ARCH	src/Makefile	/^ARCH=$(shell uname -m | grep 86$$)			# arch$/;"	m
+ARCH	tools/Makefile	/^ARCH=$(shell uname -m | grep 86$$)			# arch$/;"	m
+ARFLAGS	src/Makefile	/^ARFLAGS		= rcsv$/;"	m
+ASSERT_FAST	src/tagmap.h	78;"	d
+BIT2BYTE	src/libdft_core.h	45;"	d
+BITMAP_SZ	src/tagmap.h	60;"	d
+BYTE_MASK	src/tagmap.h	62;"	d
+CLEAR_EFLAGS_AC	src/libdft_api.h	67;"	d
+DLIB_SUFF	tools/libdft-dta.cpp	61;"	d	file:
+DLIB_SUFF_ALT	tools/libdft-dta.cpp	62;"	d	file:
+EFLAGS_DF	src/libdft_core.h	48;"	d
+F_DUPFD	src/syscall_desc.cpp	807;"	d	file:
+F_GETFD	src/syscall_desc.cpp	808;"	d	file:
+F_GETFL	src/syscall_desc.cpp	810;"	d	file:
+F_GETLK	src/syscall_desc.cpp	813;"	d	file:
+F_GETLK64	src/syscall_desc.cpp	865;"	d	file:
+F_GETOWN	src/syscall_desc.cpp	819;"	d	file:
+F_GETSIG	src/syscall_desc.cpp	823;"	d	file:
+F_SETFD	src/syscall_desc.cpp	809;"	d	file:
+F_SETFL	src/syscall_desc.cpp	811;"	d	file:
+F_SETLK	src/syscall_desc.cpp	814;"	d	file:
+F_SETLK64	src/syscall_desc.cpp	866;"	d	file:
+F_SETLKW	src/syscall_desc.cpp	815;"	d	file:
+F_SETLKW64	src/syscall_desc.cpp	867;"	d	file:
+F_SETOWN	src/syscall_desc.cpp	818;"	d	file:
+F_SETSIG	src/syscall_desc.cpp	822;"	d	file:
+GETALL	src/syscall_desc.cpp	845;"	d	file:
+GETNCNT	src/syscall_desc.cpp	846;"	d	file:
+GETPID	src/syscall_desc.cpp	843;"	d	file:
+GETVAL	src/syscall_desc.cpp	844;"	d	file:
+GETZCNT	src/syscall_desc.cpp	847;"	d	file:
+GRP_NUM	src/libdft_api.h	64;"	d
+INSDFL_DISABLE	src/libdft_api.h	/^\/* #define *\/ INSDFL_DISABLE	= 1$/;"	e	enum:__anon2
+INSDFL_ENABLE	src/libdft_api.h	/^\/* #define *\/ INSDFL_ENABLE	= 0,$/;"	e	enum:__anon2
+IPC_64	src/syscall_desc.cpp	648;"	d	file:
+IPC_CREAT	src/syscall_desc.cpp	623;"	d	file:
+IPC_DIPC	src/syscall_desc.cpp	630;"	d	file:
+IPC_EXCL	src/syscall_desc.cpp	624;"	d	file:
+IPC_FIX	src/syscall_desc.h	190;"	d
+IPC_INFO	src/syscall_desc.cpp	640;"	d	file:
+IPC_NOWAIT	src/syscall_desc.cpp	625;"	d	file:
+IPC_OLD	src/syscall_desc.cpp	646;"	d	file:
+IPC_OWN	src/syscall_desc.cpp	631;"	d	file:
+IPC_RMID	src/syscall_desc.cpp	637;"	d	file:
+IPC_SET	src/syscall_desc.cpp	638;"	d	file:
+IPC_STAT	src/syscall_desc.cpp	639;"	d	file:
+KERNEL_VERSION	src/version.h	2;"	d
+KERN_VER	src/Makefile	/^KERN_VER=$(join $(word 1,$(KVER)),$(join $(word 2,$(KVER)),$(word 3,$(KVER))))$/;"	m
+KVER	src/Makefile	/^KVER=$(subst -, ,$(subst ., ,$(shell uname -r)))	# kernel version (temp)$/;"	m
+LIB	src/Makefile	/^LIB		= libdft.a$/;"	m
+LINUX_VERSION_CODE	src/version.h	1;"	d
+LOGFILE_DFL	tools/libdft-dta.cpp	58;"	d	file:
+LONG_MASK	src/tagmap.h	64;"	d
+MAP_32BIT	src/syscall_desc.cpp	557;"	d	file:
+MAP_8H_16	src/libdft_core.cpp	/^static uint32_t	MAP_8H_16[] = {0, 0, VCPU_MASK16};$/;"	v	file:
+MAP_8H_32	src/libdft_core.cpp	/^static uint32_t	MAP_8H_32[] = {0, 0, VCPU_MASK32};$/;"	v	file:
+MAP_8L_16	src/libdft_core.cpp	/^static uint32_t	MAP_8L_16[] = {0, VCPU_MASK16};$/;"	v	file:
+MAP_8L_32	src/libdft_core.cpp	/^static uint32_t	MAP_8L_32[] = {0, VCPU_MASK32};$/;"	v	file:
+MAP_ANONYMOUS	src/tagmap.cpp	71;"	d	file:
+MAP_DENYWRITE	src/syscall_desc.cpp	560;"	d	file:
+MAP_EXECUTABLE	src/syscall_desc.cpp	561;"	d	file:
+MAP_FAILED	src/syscall_desc.cpp	555;"	d	file:
+MAP_FAILED	src/tagmap.cpp	73;"	d	file:
+MAP_FLAGS	src/tagmap.cpp	49;"	d	file:
+MAP_FLAGS	src/tagmap.cpp	51;"	d	file:
+MAP_GROWSDOWN	src/syscall_desc.cpp	559;"	d	file:
+MAP_HUGETLB	src/tagmap.cpp	47;"	d	file:
+MAP_LOCKED	src/syscall_desc.cpp	562;"	d	file:
+MAP_NONBLOCK	src/syscall_desc.cpp	565;"	d	file:
+MAP_NORESERVE	src/syscall_desc.cpp	563;"	d	file:
+MAP_POPULATE	src/syscall_desc.cpp	564;"	d	file:
+MAP_PRIVATE	src/tagmap.cpp	70;"	d	file:
+MAP_STACK	src/syscall_desc.cpp	566;"	d	file:
+MCL_CURRENT	src/syscall_desc.cpp	568;"	d	file:
+MCL_FUTURE	src/syscall_desc.cpp	569;"	d	file:
+MEM_BYTE_LEN	src/libdft_core.h	44;"	d
+MEM_LONG_LEN	src/libdft_core.h	42;"	d
+MEM_WORD_LEN	src/libdft_core.h	43;"	d
+MPOL_F_ADDR	src/syscall_desc.cpp	600;"	d	file:
+MPOL_F_LOCAL	src/syscall_desc.cpp	615;"	d	file:
+MPOL_F_MEMS_ALLOWED	src/syscall_desc.cpp	601;"	d	file:
+MPOL_F_NODE	src/syscall_desc.cpp	599;"	d	file:
+MPOL_F_RELATIVE_NODES	src/syscall_desc.cpp	590;"	d	file:
+MPOL_F_SHARED	src/syscall_desc.cpp	614;"	d	file:
+MPOL_F_STATIC_NODES	src/syscall_desc.cpp	589;"	d	file:
+MPOL_MF_INTERNAL	src/syscall_desc.cpp	607;"	d	file:
+MPOL_MF_MOVE	src/syscall_desc.cpp	605;"	d	file:
+MPOL_MF_MOVE_ALL	src/syscall_desc.cpp	606;"	d	file:
+MPOL_MF_STRICT	src/syscall_desc.cpp	604;"	d	file:
+MPOL_MODE_FLAGS	src/syscall_desc.cpp	596;"	d	file:
+MSGCTL	src/syscall_desc.h	187;"	d
+MSGMAP	src/syscall_desc.cpp	708;"	d	file:
+MSGMAX	src/syscall_desc.cpp	702;"	d	file:
+MSGMNB	src/syscall_desc.cpp	703;"	d	file:
+MSGMNI	src/syscall_desc.cpp	701;"	d	file:
+MSGPOOL	src/syscall_desc.cpp	706;"	d	file:
+MSGRCV	src/syscall_desc.h	186;"	d
+MSGSEG	src/syscall_desc.cpp	711;"	d	file:
+MSGSSZ	src/syscall_desc.cpp	709;"	d	file:
+MSGTQL	src/syscall_desc.cpp	707;"	d	file:
+MSG_EXCEPT	src/syscall_desc.cpp	655;"	d	file:
+MSG_INFO	src/syscall_desc.cpp	651;"	d	file:
+MSG_MEM_SCALE	src/syscall_desc.cpp	699;"	d	file:
+MSG_NOERROR	src/syscall_desc.cpp	654;"	d	file:
+MSG_STAT	src/syscall_desc.cpp	650;"	d	file:
+OBJS	src/Makefile	/^OBJS		= libdft_api.o libdft_core.o syscall_desc.o tagmap.o$/;"	m
+OBJS	tools/Makefile	/^OBJS		= nullpin.o libdft.o libdft-dta.o$/;"	m
+OP_0	src/libdft_core.h	/^\/* #define *\/ OP_0 = 0,			\/* 0th (1st) operand index *\/$/;"	e	enum:__anon7
+OP_1	src/libdft_core.h	/^\/* #define *\/ OP_1 = 1,			\/* 1st (2nd) operand index *\/$/;"	e	enum:__anon7
+OP_2	src/libdft_core.h	/^\/* #define *\/ OP_2 = 2,			\/* 2nd (3rd) operand index *\/$/;"	e	enum:__anon7
+OP_3	src/libdft_core.h	/^\/* #define *\/ OP_3 = 3,			\/* 3rd (4th) operand index *\/$/;"	e	enum:__anon7
+OP_4	src/libdft_core.h	/^\/* #define *\/ OP_4 = 4			\/* 4rd (5th) operand index *\/$/;"	e	enum:__anon7
+OS	src/Makefile	/^OS=$(shell uname -o | grep Linux$$)			# OS$/;"	m
+OS	tools/Makefile	/^OS=$(shell uname -o | grep Linux$$)			# OS$/;"	m
+PAGE_SZ	src/syscall_desc.h	303;"	d
+PF_INET	tools/libdft-dta.cpp	63;"	d	file:
+PF_INET6	tools/libdft-dta.cpp	64;"	d	file:
+PROT_EXEC	src/tagmap.cpp	65;"	d	file:
+PROT_GROWSDOWN	src/tagmap.cpp	67;"	d	file:
+PROT_GROWSUP	src/tagmap.cpp	69;"	d	file:
+PROT_NONE	src/tagmap.cpp	66;"	d	file:
+PROT_READ	src/tagmap.cpp	63;"	d	file:
+PROT_WRITE	src/tagmap.cpp	64;"	d	file:
+QUAD_MASK	src/tagmap.h	65;"	d
+Q_GETFMT	src/syscall_desc.h	104;"	d
+Q_GETINFO	src/syscall_desc.h	105;"	d
+Q_GETQUOTA	src/syscall_desc.h	106;"	d
+Q_SETQUOTA	src/syscall_desc.h	107;"	d
+Q_XGETQSTAT	src/syscall_desc.h	110;"	d
+Q_XGETQUOTA	src/syscall_desc.h	109;"	d
+R32_ALIGN	src/libdft_core.h	36;"	d
+REG16_INDX	src/libdft_api.cpp	/^REG16_INDX(REG reg)$/;"	f
+REG32_INDX	src/libdft_api.cpp	/^REG32_INDX(REG reg)$/;"	f
+REG8_INDX	src/libdft_api.cpp	/^REG8_INDX(REG reg)$/;"	f
+SEMAEM	src/syscall_desc.cpp	804;"	d	file:
+SEMCTL	src/syscall_desc.h	185;"	d
+SEMMNI	src/syscall_desc.cpp	799;"	d	file:
+SEMMNS	src/syscall_desc.cpp	801;"	d	file:
+SEMMSL	src/syscall_desc.cpp	800;"	d	file:
+SEMOPM	src/syscall_desc.cpp	802;"	d	file:
+SEMVMX	src/syscall_desc.cpp	803;"	d	file:
+SEM_INFO	src/syscall_desc.cpp	853;"	d	file:
+SEM_STAT	src/syscall_desc.cpp	852;"	d	file:
+SEM_UNDO	src/syscall_desc.cpp	840;"	d	file:
+SETALL	src/syscall_desc.cpp	849;"	d	file:
+SETVAL	src/syscall_desc.cpp	848;"	d	file:
+SHMCTL	src/syscall_desc.h	188;"	d
+SHM_EXEC	src/syscall_desc.cpp	758;"	d	file:
+SHM_INFO	src/syscall_desc.cpp	766;"	d	file:
+SHM_LOCK	src/syscall_desc.cpp	761;"	d	file:
+SHM_R	src/syscall_desc.cpp	751;"	d	file:
+SHM_RDONLY	src/syscall_desc.cpp	755;"	d	file:
+SHM_REMAP	src/syscall_desc.cpp	757;"	d	file:
+SHM_RND	src/syscall_desc.cpp	756;"	d	file:
+SHM_STAT	src/syscall_desc.cpp	765;"	d	file:
+SHM_UNLOCK	src/syscall_desc.cpp	762;"	d	file:
+SHM_W	src/syscall_desc.cpp	752;"	d	file:
+SI_MAX_SIZE	src/syscall_desc.cpp	396;"	d	file:
+SI_PAD_SIZE	src/syscall_desc.cpp	398;"	d	file:
+SOBJS	tools/Makefile	/^SOBJS		= $(OBJS:.o=.so)$/;"	m
+STDIN_FILENO	tools/libdft-dta.cpp	65;"	d	file:
+SYSCALL_ARG0	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG0 = 0,			\/* 1st argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG1	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG1 = 1,			\/* 2nd argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG2	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG2 = 2,			\/* 3rd argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG3	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG3 = 3,			\/* 4th argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG4	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG4 = 4,			\/* 5th argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG5	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG5 = 5,			\/* 6th argument in syscall *\/$/;"	e	enum:__anon1
+SYSCALL_ARG_NUM	src/libdft_api.h	/^\/* #define *\/ SYSCALL_ARG_NUM = 6		\/* syscall arguments *\/$/;"	e	enum:__anon1
+SYSCALL_MAX	src/libdft_api.h	44;"	d
+SYSCALL_MAX	src/libdft_api.h	47;"	d
+SYSCALL_MAX	src/libdft_api.h	49;"	d
+SYSCALL_MAX	src/libdft_api.h	51;"	d
+SYSCALL_MAX	src/libdft_api.h	53;"	d
+SYSCALL_MAX	src/libdft_api.h	56;"	d
+SYSCALL_MAX	src/libdft_api.h	59;"	d
+SYSCALL_MAX	src/libdft_api.h	61;"	d
+SYS_ACCEPT	src/syscall_desc.h	289;"	d
+SYS_ACCEPT4	src/syscall_desc.h	297;"	d
+SYS_GETPEERNAME	src/syscall_desc.h	291;"	d
+SYS_GETSOCKNAME	src/syscall_desc.h	290;"	d
+SYS_GETSOCKOPT	src/syscall_desc.h	295;"	d
+SYS_RECV	src/syscall_desc.h	293;"	d
+SYS_RECVFROM	src/syscall_desc.h	294;"	d
+SYS_RECVMMSG	src/syscall_desc.h	299;"	d
+SYS_RECVMSG	src/syscall_desc.h	296;"	d
+SYS_SOCKET	tools/libdft-dta.cpp	55;"	d	file:
+SYS_SOCKETPAIR	src/syscall_desc.h	292;"	d
+SYS__llseek	src/syscall.h	261;"	d
+SYS__newselect	src/syscall.h	262;"	d
+SYS__sysctl	src/syscall.h	5;"	d
+SYS_access	src/syscall.h	6;"	d
+SYS_acct	src/syscall.h	7;"	d
+SYS_add_key	src/syscall.h	8;"	d
+SYS_adjtimex	src/syscall.h	9;"	d
+SYS_afs_syscall	src/syscall.h	10;"	d
+SYS_alarm	src/syscall.h	11;"	d
+SYS_bdflush	src/syscall.h	263;"	d
+SYS_break	src/syscall.h	264;"	d
+SYS_brk	src/syscall.h	12;"	d
+SYS_capget	src/syscall.h	13;"	d
+SYS_capset	src/syscall.h	14;"	d
+SYS_chdir	src/syscall.h	15;"	d
+SYS_chmod	src/syscall.h	16;"	d
+SYS_chown	src/syscall.h	17;"	d
+SYS_chown32	src/syscall.h	265;"	d
+SYS_chroot	src/syscall.h	18;"	d
+SYS_clock_getres	src/syscall.h	19;"	d
+SYS_clock_gettime	src/syscall.h	20;"	d
+SYS_clock_nanosleep	src/syscall.h	21;"	d
+SYS_clock_settime	src/syscall.h	22;"	d
+SYS_clone	src/syscall.h	23;"	d
+SYS_close	src/syscall.h	24;"	d
+SYS_creat	src/syscall.h	25;"	d
+SYS_create_module	src/syscall.h	26;"	d
+SYS_delete_module	src/syscall.h	27;"	d
+SYS_dup	src/syscall.h	28;"	d
+SYS_dup2	src/syscall.h	29;"	d
+SYS_epoll_create	src/syscall.h	30;"	d
+SYS_epoll_ctl	src/syscall.h	31;"	d
+SYS_epoll_pwait	src/syscall.h	32;"	d
+SYS_epoll_wait	src/syscall.h	33;"	d
+SYS_eventfd	src/syscall.h	34;"	d
+SYS_execve	src/syscall.h	35;"	d
+SYS_exit	src/syscall.h	36;"	d
+SYS_exit_group	src/syscall.h	37;"	d
+SYS_faccessat	src/syscall.h	38;"	d
+SYS_fadvise64	src/syscall.h	39;"	d
+SYS_fadvise64_64	src/syscall.h	266;"	d
+SYS_fallocate	src/syscall.h	40;"	d
+SYS_fchdir	src/syscall.h	41;"	d
+SYS_fchmod	src/syscall.h	42;"	d
+SYS_fchmodat	src/syscall.h	43;"	d
+SYS_fchown	src/syscall.h	44;"	d
+SYS_fchown32	src/syscall.h	267;"	d
+SYS_fchownat	src/syscall.h	45;"	d
+SYS_fcntl	src/syscall.h	46;"	d
+SYS_fcntl64	src/syscall.h	268;"	d
+SYS_fdatasync	src/syscall.h	47;"	d
+SYS_fgetxattr	src/syscall.h	48;"	d
+SYS_flistxattr	src/syscall.h	49;"	d
+SYS_flock	src/syscall.h	50;"	d
+SYS_fork	src/syscall.h	51;"	d
+SYS_fremovexattr	src/syscall.h	52;"	d
+SYS_fsetxattr	src/syscall.h	53;"	d
+SYS_fstat	src/syscall.h	54;"	d
+SYS_fstat64	src/syscall.h	269;"	d
+SYS_fstatat64	src/syscall.h	270;"	d
+SYS_fstatfs	src/syscall.h	55;"	d
+SYS_fstatfs64	src/syscall.h	271;"	d
+SYS_fsync	src/syscall.h	56;"	d
+SYS_ftime	src/syscall.h	272;"	d
+SYS_ftruncate	src/syscall.h	57;"	d
+SYS_ftruncate64	src/syscall.h	273;"	d
+SYS_futex	src/syscall.h	58;"	d
+SYS_futimesat	src/syscall.h	59;"	d
+SYS_get_kernel_syms	src/syscall.h	60;"	d
+SYS_get_mempolicy	src/syscall.h	61;"	d
+SYS_get_robust_list	src/syscall.h	62;"	d
+SYS_get_thread_area	src/syscall.h	63;"	d
+SYS_getcpu	src/syscall.h	274;"	d
+SYS_getcwd	src/syscall.h	64;"	d
+SYS_getdents	src/syscall.h	65;"	d
+SYS_getdents64	src/syscall.h	66;"	d
+SYS_getegid	src/syscall.h	67;"	d
+SYS_getegid32	src/syscall.h	275;"	d
+SYS_geteuid	src/syscall.h	68;"	d
+SYS_geteuid32	src/syscall.h	276;"	d
+SYS_getgid	src/syscall.h	69;"	d
+SYS_getgid32	src/syscall.h	277;"	d
+SYS_getgroups	src/syscall.h	70;"	d
+SYS_getgroups32	src/syscall.h	278;"	d
+SYS_getitimer	src/syscall.h	71;"	d
+SYS_getpgid	src/syscall.h	72;"	d
+SYS_getpgrp	src/syscall.h	73;"	d
+SYS_getpid	src/syscall.h	74;"	d
+SYS_getpmsg	src/syscall.h	75;"	d
+SYS_getppid	src/syscall.h	76;"	d
+SYS_getpriority	src/syscall.h	77;"	d
+SYS_getresgid	src/syscall.h	78;"	d
+SYS_getresgid32	src/syscall.h	279;"	d
+SYS_getresuid	src/syscall.h	79;"	d
+SYS_getresuid32	src/syscall.h	280;"	d
+SYS_getrlimit	src/syscall.h	80;"	d
+SYS_getrusage	src/syscall.h	81;"	d
+SYS_getsid	src/syscall.h	82;"	d
+SYS_gettid	src/syscall.h	83;"	d
+SYS_gettimeofday	src/syscall.h	84;"	d
+SYS_getuid	src/syscall.h	85;"	d
+SYS_getuid32	src/syscall.h	281;"	d
+SYS_getxattr	src/syscall.h	86;"	d
+SYS_gtty	src/syscall.h	282;"	d
+SYS_idle	src/syscall.h	283;"	d
+SYS_init_module	src/syscall.h	87;"	d
+SYS_inotify_add_watch	src/syscall.h	88;"	d
+SYS_inotify_init	src/syscall.h	89;"	d
+SYS_inotify_rm_watch	src/syscall.h	90;"	d
+SYS_io_cancel	src/syscall.h	91;"	d
+SYS_io_destroy	src/syscall.h	92;"	d
+SYS_io_getevents	src/syscall.h	93;"	d
+SYS_io_setup	src/syscall.h	94;"	d
+SYS_io_submit	src/syscall.h	95;"	d
+SYS_ioctl	src/syscall.h	96;"	d
+SYS_ioperm	src/syscall.h	97;"	d
+SYS_iopl	src/syscall.h	98;"	d
+SYS_ioprio_get	src/syscall.h	99;"	d
+SYS_ioprio_set	src/syscall.h	100;"	d
+SYS_ipc	src/syscall.h	284;"	d
+SYS_kexec_load	src/syscall.h	101;"	d
+SYS_keyctl	src/syscall.h	102;"	d
+SYS_kill	src/syscall.h	103;"	d
+SYS_lchown	src/syscall.h	104;"	d
+SYS_lchown32	src/syscall.h	285;"	d
+SYS_lgetxattr	src/syscall.h	105;"	d
+SYS_link	src/syscall.h	106;"	d
+SYS_linkat	src/syscall.h	107;"	d
+SYS_listxattr	src/syscall.h	108;"	d
+SYS_llistxattr	src/syscall.h	109;"	d
+SYS_lock	src/syscall.h	286;"	d
+SYS_lookup_dcookie	src/syscall.h	110;"	d
+SYS_lremovexattr	src/syscall.h	111;"	d
+SYS_lseek	src/syscall.h	112;"	d
+SYS_lsetxattr	src/syscall.h	113;"	d
+SYS_lstat	src/syscall.h	114;"	d
+SYS_lstat64	src/syscall.h	287;"	d
+SYS_madvise	src/syscall.h	115;"	d
+SYS_madvise1	src/syscall.h	288;"	d
+SYS_mbind	src/syscall.h	116;"	d
+SYS_migrate_pages	src/syscall.h	117;"	d
+SYS_mincore	src/syscall.h	118;"	d
+SYS_mkdir	src/syscall.h	119;"	d
+SYS_mkdirat	src/syscall.h	120;"	d
+SYS_mknod	src/syscall.h	121;"	d
+SYS_mknodat	src/syscall.h	122;"	d
+SYS_mlock	src/syscall.h	123;"	d
+SYS_mlockall	src/syscall.h	124;"	d
+SYS_mmap	src/syscall.h	125;"	d
+SYS_mmap2	src/syscall.h	289;"	d
+SYS_modify_ldt	src/syscall.h	126;"	d
+SYS_mount	src/syscall.h	127;"	d
+SYS_move_pages	src/syscall.h	128;"	d
+SYS_mprotect	src/syscall.h	129;"	d
+SYS_mpx	src/syscall.h	290;"	d
+SYS_mq_getsetattr	src/syscall.h	130;"	d
+SYS_mq_notify	src/syscall.h	131;"	d
+SYS_mq_open	src/syscall.h	132;"	d
+SYS_mq_timedreceive	src/syscall.h	133;"	d
+SYS_mq_timedsend	src/syscall.h	134;"	d
+SYS_mq_unlink	src/syscall.h	135;"	d
+SYS_mremap	src/syscall.h	136;"	d
+SYS_msync	src/syscall.h	137;"	d
+SYS_munlock	src/syscall.h	138;"	d
+SYS_munlockall	src/syscall.h	139;"	d
+SYS_munmap	src/syscall.h	140;"	d
+SYS_nanosleep	src/syscall.h	141;"	d
+SYS_nfsservctl	src/syscall.h	142;"	d
+SYS_nice	src/syscall.h	291;"	d
+SYS_oldfstat	src/syscall.h	292;"	d
+SYS_oldlstat	src/syscall.h	293;"	d
+SYS_oldolduname	src/syscall.h	294;"	d
+SYS_oldstat	src/syscall.h	295;"	d
+SYS_olduname	src/syscall.h	296;"	d
+SYS_open	src/syscall.h	143;"	d
+SYS_openat	src/syscall.h	144;"	d
+SYS_pause	src/syscall.h	145;"	d
+SYS_personality	src/syscall.h	146;"	d
+SYS_pipe	src/syscall.h	147;"	d
+SYS_pivot_root	src/syscall.h	148;"	d
+SYS_poll	src/syscall.h	149;"	d
+SYS_ppoll	src/syscall.h	150;"	d
+SYS_prctl	src/syscall.h	151;"	d
+SYS_pread64	src/syscall.h	152;"	d
+SYS_prof	src/syscall.h	297;"	d
+SYS_profil	src/syscall.h	298;"	d
+SYS_pselect6	src/syscall.h	153;"	d
+SYS_ptrace	src/syscall.h	154;"	d
+SYS_putpmsg	src/syscall.h	155;"	d
+SYS_pwrite64	src/syscall.h	156;"	d
+SYS_query_module	src/syscall.h	157;"	d
+SYS_quotactl	src/syscall.h	158;"	d
+SYS_read	src/syscall.h	159;"	d
+SYS_readahead	src/syscall.h	160;"	d
+SYS_readdir	src/syscall.h	299;"	d
+SYS_readlink	src/syscall.h	161;"	d
+SYS_readlinkat	src/syscall.h	162;"	d
+SYS_readv	src/syscall.h	163;"	d
+SYS_reboot	src/syscall.h	164;"	d
+SYS_remap_file_pages	src/syscall.h	165;"	d
+SYS_removexattr	src/syscall.h	166;"	d
+SYS_rename	src/syscall.h	167;"	d
+SYS_renameat	src/syscall.h	168;"	d
+SYS_request_key	src/syscall.h	169;"	d
+SYS_restart_syscall	src/syscall.h	170;"	d
+SYS_rmdir	src/syscall.h	171;"	d
+SYS_rt_sigaction	src/syscall.h	172;"	d
+SYS_rt_sigpending	src/syscall.h	173;"	d
+SYS_rt_sigprocmask	src/syscall.h	174;"	d
+SYS_rt_sigqueueinfo	src/syscall.h	175;"	d
+SYS_rt_sigreturn	src/syscall.h	176;"	d
+SYS_rt_sigsuspend	src/syscall.h	177;"	d
+SYS_rt_sigtimedwait	src/syscall.h	178;"	d
+SYS_sched_get_priority_max	src/syscall.h	179;"	d
+SYS_sched_get_priority_min	src/syscall.h	180;"	d
+SYS_sched_getaffinity	src/syscall.h	181;"	d
+SYS_sched_getparam	src/syscall.h	182;"	d
+SYS_sched_getscheduler	src/syscall.h	183;"	d
+SYS_sched_rr_get_interval	src/syscall.h	184;"	d
+SYS_sched_setaffinity	src/syscall.h	185;"	d
+SYS_sched_setparam	src/syscall.h	186;"	d
+SYS_sched_setscheduler	src/syscall.h	187;"	d
+SYS_sched_yield	src/syscall.h	188;"	d
+SYS_select	src/syscall.h	189;"	d
+SYS_sendfile	src/syscall.h	190;"	d
+SYS_sendfile64	src/syscall.h	300;"	d
+SYS_set_mempolicy	src/syscall.h	191;"	d
+SYS_set_robust_list	src/syscall.h	192;"	d
+SYS_set_thread_area	src/syscall.h	193;"	d
+SYS_set_tid_address	src/syscall.h	194;"	d
+SYS_setdomainname	src/syscall.h	195;"	d
+SYS_setfsgid	src/syscall.h	196;"	d
+SYS_setfsgid32	src/syscall.h	301;"	d
+SYS_setfsuid	src/syscall.h	197;"	d
+SYS_setfsuid32	src/syscall.h	302;"	d
+SYS_setgid	src/syscall.h	198;"	d
+SYS_setgid32	src/syscall.h	303;"	d
+SYS_setgroups	src/syscall.h	199;"	d
+SYS_setgroups32	src/syscall.h	304;"	d
+SYS_sethostname	src/syscall.h	200;"	d
+SYS_setitimer	src/syscall.h	201;"	d
+SYS_setpgid	src/syscall.h	202;"	d
+SYS_setpriority	src/syscall.h	203;"	d
+SYS_setregid	src/syscall.h	204;"	d
+SYS_setregid32	src/syscall.h	305;"	d
+SYS_setresgid	src/syscall.h	205;"	d
+SYS_setresgid32	src/syscall.h	306;"	d
+SYS_setresuid	src/syscall.h	206;"	d
+SYS_setresuid32	src/syscall.h	307;"	d
+SYS_setreuid	src/syscall.h	207;"	d
+SYS_setreuid32	src/syscall.h	308;"	d
+SYS_setrlimit	src/syscall.h	208;"	d
+SYS_setsid	src/syscall.h	209;"	d
+SYS_settimeofday	src/syscall.h	210;"	d
+SYS_setuid	src/syscall.h	211;"	d
+SYS_setuid32	src/syscall.h	309;"	d
+SYS_setxattr	src/syscall.h	212;"	d
+SYS_sgetmask	src/syscall.h	310;"	d
+SYS_sigaction	src/syscall.h	311;"	d
+SYS_sigaltstack	src/syscall.h	213;"	d
+SYS_signal	src/syscall.h	312;"	d
+SYS_signalfd	src/syscall.h	214;"	d
+SYS_sigpending	src/syscall.h	313;"	d
+SYS_sigprocmask	src/syscall.h	314;"	d
+SYS_sigreturn	src/syscall.h	315;"	d
+SYS_sigsuspend	src/syscall.h	316;"	d
+SYS_socketcall	src/syscall.h	317;"	d
+SYS_splice	src/syscall.h	215;"	d
+SYS_ssetmask	src/syscall.h	318;"	d
+SYS_stat	src/syscall.h	216;"	d
+SYS_stat64	src/syscall.h	319;"	d
+SYS_statfs	src/syscall.h	217;"	d
+SYS_statfs64	src/syscall.h	320;"	d
+SYS_stime	src/syscall.h	321;"	d
+SYS_stty	src/syscall.h	322;"	d
+SYS_swapoff	src/syscall.h	218;"	d
+SYS_swapon	src/syscall.h	219;"	d
+SYS_symlink	src/syscall.h	220;"	d
+SYS_symlinkat	src/syscall.h	221;"	d
+SYS_sync	src/syscall.h	222;"	d
+SYS_sync_file_range	src/syscall.h	223;"	d
+SYS_sysfs	src/syscall.h	224;"	d
+SYS_sysinfo	src/syscall.h	225;"	d
+SYS_syslog	src/syscall.h	226;"	d
+SYS_tee	src/syscall.h	227;"	d
+SYS_tgkill	src/syscall.h	228;"	d
+SYS_time	src/syscall.h	229;"	d
+SYS_timer_create	src/syscall.h	230;"	d
+SYS_timer_delete	src/syscall.h	231;"	d
+SYS_timer_getoverrun	src/syscall.h	232;"	d
+SYS_timer_gettime	src/syscall.h	233;"	d
+SYS_timer_settime	src/syscall.h	234;"	d
+SYS_timerfd_create	src/syscall.h	235;"	d
+SYS_timerfd_gettime	src/syscall.h	236;"	d
+SYS_timerfd_settime	src/syscall.h	237;"	d
+SYS_times	src/syscall.h	238;"	d
+SYS_tkill	src/syscall.h	239;"	d
+SYS_truncate	src/syscall.h	240;"	d
+SYS_truncate64	src/syscall.h	323;"	d
+SYS_ugetrlimit	src/syscall.h	324;"	d
+SYS_ulimit	src/syscall.h	325;"	d
+SYS_umask	src/syscall.h	241;"	d
+SYS_umount	src/syscall.h	326;"	d
+SYS_umount2	src/syscall.h	242;"	d
+SYS_uname	src/syscall.h	243;"	d
+SYS_unlink	src/syscall.h	244;"	d
+SYS_unlinkat	src/syscall.h	245;"	d
+SYS_unshare	src/syscall.h	246;"	d
+SYS_uselib	src/syscall.h	247;"	d
+SYS_ustat	src/syscall.h	248;"	d
+SYS_utime	src/syscall.h	249;"	d
+SYS_utimensat	src/syscall.h	250;"	d
+SYS_utimes	src/syscall.h	251;"	d
+SYS_vfork	src/syscall.h	252;"	d
+SYS_vhangup	src/syscall.h	253;"	d
+SYS_vm86	src/syscall.h	327;"	d
+SYS_vm86old	src/syscall.h	328;"	d
+SYS_vmsplice	src/syscall.h	254;"	d
+SYS_vserver	src/syscall.h	255;"	d
+SYS_wait4	src/syscall.h	256;"	d
+SYS_waitid	src/syscall.h	257;"	d
+SYS_waitpid	src/syscall.h	329;"	d
+SYS_write	src/syscall.h	258;"	d
+SYS_writev	src/syscall.h	259;"	d
+VCPU_MASK16	src/libdft_core.h	40;"	d
+VCPU_MASK32	src/libdft_core.h	39;"	d
+VCPU_MASK8	src/libdft_core.h	41;"	d
+VIRT2BIT	src/tagmap.h	75;"	d
+VIRT2BYTE	src/tagmap.h	72;"	d
+WORD_LEN	tools/libdft-dta.cpp	54;"	d	file:
+WORD_MASK	src/tagmap.h	63;"	d
+XQM_CMD	src/syscall_desc.h	108;"	d
+_3BYTE_MASK	src/tagmap.h	66;"	d
+_5BYTE_MASK	src/tagmap.h	67;"	d
+_6BYTE_MASK	src/tagmap.h	68;"	d
+_7BYTE_MASK	src/tagmap.h	69;"	d
+_ASM_I386_UNISTD_H_	src/unistd_32.h	2;"	d
+__ARCH_FLOCK64_PAD	src/syscall_desc.cpp	868;"	d	file:
+__ARCH_FLOCK_PAD	src/syscall_desc.cpp	855;"	d	file:
+__ARCH_SI_BAND_T	src/syscall_desc.cpp	69;"	d	file:
+__ARCH_SI_PREAMBLE_SIZE	src/syscall_desc.cpp	397;"	d	file:
+__ARCH_SI_UID_T	src/syscall_desc.cpp	399;"	d	file:
+__BRANCH_PRED_H__	src/branch_pred.h	34;"	d
+__CPU_SETSIZE	src/syscall_desc.cpp	500;"	d	file:
+__FDSET_LONGS	src/syscall_desc.cpp	232;"	d	file:
+__FD_SETSIZE	src/syscall_desc.cpp	231;"	d	file:
+__LIBDFT_API_H__	src/libdft_api.h	34;"	d
+__LIBDFT_CORE_H__	src/libdft_core.h	34;"	d
+__MSGSEG	src/syscall_desc.cpp	710;"	d	file:
+__NCPUBITS	src/syscall_desc.cpp	501;"	d	file:
+__NFDBITS	src/syscall_desc.cpp	230;"	d	file:
+__NR__llseek	src/unistd_32.h	148;"	d
+__NR__newselect	src/unistd_32.h	150;"	d
+__NR__sysctl	src/unistd_32.h	157;"	d
+__NR_access	src/unistd_32.h	41;"	d
+__NR_acct	src/unistd_32.h	59;"	d
+__NR_add_key	src/unistd_32.h	294;"	d
+__NR_adjtimex	src/unistd_32.h	132;"	d
+__NR_afs_syscall	src/unistd_32.h	145;"	d
+__NR_alarm	src/unistd_32.h	35;"	d
+__NR_bdflush	src/unistd_32.h	142;"	d
+__NR_break	src/unistd_32.h	25;"	d
+__NR_brk	src/unistd_32.h	53;"	d
+__NR_capget	src/unistd_32.h	192;"	d
+__NR_capset	src/unistd_32.h	193;"	d
+__NR_chdir	src/unistd_32.h	20;"	d
+__NR_chmod	src/unistd_32.h	23;"	d
+__NR_chown	src/unistd_32.h	190;"	d
+__NR_chown32	src/unistd_32.h	220;"	d
+__NR_chroot	src/unistd_32.h	69;"	d
+__NR_clock_getres	src/unistd_32.h	274;"	d
+__NR_clock_gettime	src/unistd_32.h	273;"	d
+__NR_clock_nanosleep	src/unistd_32.h	275;"	d
+__NR_clock_settime	src/unistd_32.h	272;"	d
+__NR_clone	src/unistd_32.h	128;"	d
+__NR_close	src/unistd_32.h	14;"	d
+__NR_creat	src/unistd_32.h	16;"	d
+__NR_create_module	src/unistd_32.h	135;"	d
+__NR_delete_module	src/unistd_32.h	137;"	d
+__NR_dup	src/unistd_32.h	49;"	d
+__NR_dup2	src/unistd_32.h	71;"	d
+__NR_epoll_create	src/unistd_32.h	262;"	d
+__NR_epoll_ctl	src/unistd_32.h	263;"	d
+__NR_epoll_pwait	src/unistd_32.h	327;"	d
+__NR_epoll_wait	src/unistd_32.h	264;"	d
+__NR_eventfd	src/unistd_32.h	331;"	d
+__NR_execve	src/unistd_32.h	19;"	d
+__NR_exit	src/unistd_32.h	9;"	d
+__NR_exit_group	src/unistd_32.h	260;"	d
+__NR_faccessat	src/unistd_32.h	315;"	d
+__NR_fadvise64	src/unistd_32.h	258;"	d
+__NR_fadvise64_64	src/unistd_32.h	280;"	d
+__NR_fallocate	src/unistd_32.h	332;"	d
+__NR_fchdir	src/unistd_32.h	141;"	d
+__NR_fchmod	src/unistd_32.h	102;"	d
+__NR_fchmodat	src/unistd_32.h	314;"	d
+__NR_fchown	src/unistd_32.h	103;"	d
+__NR_fchown32	src/unistd_32.h	215;"	d
+__NR_fchownat	src/unistd_32.h	306;"	d
+__NR_fcntl	src/unistd_32.h	63;"	d
+__NR_fcntl64	src/unistd_32.h	230;"	d
+__NR_fdatasync	src/unistd_32.h	156;"	d
+__NR_fgetxattr	src/unistd_32.h	239;"	d
+__NR_flistxattr	src/unistd_32.h	242;"	d
+__NR_flock	src/unistd_32.h	151;"	d
+__NR_fork	src/unistd_32.h	10;"	d
+__NR_fremovexattr	src/unistd_32.h	245;"	d
+__NR_fsetxattr	src/unistd_32.h	236;"	d
+__NR_fstat	src/unistd_32.h	116;"	d
+__NR_fstat64	src/unistd_32.h	205;"	d
+__NR_fstatat64	src/unistd_32.h	308;"	d
+__NR_fstatfs	src/unistd_32.h	108;"	d
+__NR_fstatfs64	src/unistd_32.h	277;"	d
+__NR_fsync	src/unistd_32.h	126;"	d
+__NR_ftime	src/unistd_32.h	43;"	d
+__NR_ftruncate	src/unistd_32.h	101;"	d
+__NR_ftruncate64	src/unistd_32.h	202;"	d
+__NR_futex	src/unistd_32.h	248;"	d
+__NR_futimesat	src/unistd_32.h	307;"	d
+__NR_get_kernel_syms	src/unistd_32.h	138;"	d
+__NR_get_mempolicy	src/unistd_32.h	283;"	d
+__NR_get_robust_list	src/unistd_32.h	320;"	d
+__NR_get_thread_area	src/unistd_32.h	252;"	d
+__NR_getcpu	src/unistd_32.h	326;"	d
+__NR_getcwd	src/unistd_32.h	191;"	d
+__NR_getdents	src/unistd_32.h	149;"	d
+__NR_getdents64	src/unistd_32.h	229;"	d
+__NR_getegid	src/unistd_32.h	58;"	d
+__NR_getegid32	src/unistd_32.h	210;"	d
+__NR_geteuid	src/unistd_32.h	57;"	d
+__NR_geteuid32	src/unistd_32.h	209;"	d
+__NR_getgid	src/unistd_32.h	55;"	d
+__NR_getgid32	src/unistd_32.h	208;"	d
+__NR_getgroups	src/unistd_32.h	88;"	d
+__NR_getgroups32	src/unistd_32.h	213;"	d
+__NR_getitimer	src/unistd_32.h	113;"	d
+__NR_getpgid	src/unistd_32.h	140;"	d
+__NR_getpgrp	src/unistd_32.h	73;"	d
+__NR_getpid	src/unistd_32.h	28;"	d
+__NR_getpmsg	src/unistd_32.h	196;"	d
+__NR_getppid	src/unistd_32.h	72;"	d
+__NR_getpriority	src/unistd_32.h	104;"	d
+__NR_getresgid	src/unistd_32.h	179;"	d
+__NR_getresgid32	src/unistd_32.h	219;"	d
+__NR_getresuid	src/unistd_32.h	173;"	d
+__NR_getresuid32	src/unistd_32.h	217;"	d
+__NR_getrlimit	src/unistd_32.h	84;"	d
+__NR_getrusage	src/unistd_32.h	85;"	d
+__NR_getsid	src/unistd_32.h	155;"	d
+__NR_gettid	src/unistd_32.h	232;"	d
+__NR_gettimeofday	src/unistd_32.h	86;"	d
+__NR_getuid	src/unistd_32.h	32;"	d
+__NR_getuid32	src/unistd_32.h	207;"	d
+__NR_getxattr	src/unistd_32.h	237;"	d
+__NR_gtty	src/unistd_32.h	40;"	d
+__NR_idle	src/unistd_32.h	120;"	d
+__NR_init_module	src/unistd_32.h	136;"	d
+__NR_inotify_add_watch	src/unistd_32.h	300;"	d
+__NR_inotify_init	src/unistd_32.h	299;"	d
+__NR_inotify_rm_watch	src/unistd_32.h	301;"	d
+__NR_io_cancel	src/unistd_32.h	257;"	d
+__NR_io_destroy	src/unistd_32.h	254;"	d
+__NR_io_getevents	src/unistd_32.h	255;"	d
+__NR_io_setup	src/unistd_32.h	253;"	d
+__NR_io_submit	src/unistd_32.h	256;"	d
+__NR_ioctl	src/unistd_32.h	62;"	d
+__NR_ioperm	src/unistd_32.h	109;"	d
+__NR_iopl	src/unistd_32.h	118;"	d
+__NR_ioprio_get	src/unistd_32.h	298;"	d
+__NR_ioprio_set	src/unistd_32.h	297;"	d
+__NR_ipc	src/unistd_32.h	125;"	d
+__NR_kexec_load	src/unistd_32.h	291;"	d
+__NR_keyctl	src/unistd_32.h	296;"	d
+__NR_kill	src/unistd_32.h	45;"	d
+__NR_lchown	src/unistd_32.h	24;"	d
+__NR_lchown32	src/unistd_32.h	206;"	d
+__NR_lgetxattr	src/unistd_32.h	238;"	d
+__NR_link	src/unistd_32.h	17;"	d
+__NR_linkat	src/unistd_32.h	311;"	d
+__NR_listxattr	src/unistd_32.h	240;"	d
+__NR_llistxattr	src/unistd_32.h	241;"	d
+__NR_lock	src/unistd_32.h	61;"	d
+__NR_lookup_dcookie	src/unistd_32.h	261;"	d
+__NR_lremovexattr	src/unistd_32.h	244;"	d
+__NR_lseek	src/unistd_32.h	27;"	d
+__NR_lsetxattr	src/unistd_32.h	235;"	d
+__NR_lstat	src/unistd_32.h	115;"	d
+__NR_lstat64	src/unistd_32.h	204;"	d
+__NR_madvise	src/unistd_32.h	227;"	d
+__NR_madvise1	src/unistd_32.h	228;"	d
+__NR_mbind	src/unistd_32.h	282;"	d
+__NR_migrate_pages	src/unistd_32.h	302;"	d
+__NR_mincore	src/unistd_32.h	226;"	d
+__NR_mkdir	src/unistd_32.h	47;"	d
+__NR_mkdirat	src/unistd_32.h	304;"	d
+__NR_mknod	src/unistd_32.h	22;"	d
+__NR_mknodat	src/unistd_32.h	305;"	d
+__NR_mlock	src/unistd_32.h	158;"	d
+__NR_mlockall	src/unistd_32.h	160;"	d
+__NR_mmap	src/unistd_32.h	98;"	d
+__NR_mmap2	src/unistd_32.h	200;"	d
+__NR_modify_ldt	src/unistd_32.h	131;"	d
+__NR_mount	src/unistd_32.h	29;"	d
+__NR_move_pages	src/unistd_32.h	325;"	d
+__NR_mprotect	src/unistd_32.h	133;"	d
+__NR_mpx	src/unistd_32.h	64;"	d
+__NR_mq_getsetattr	src/unistd_32.h	290;"	d
+__NR_mq_notify	src/unistd_32.h	289;"	d
+__NR_mq_open	src/unistd_32.h	285;"	d
+__NR_mq_timedreceive	src/unistd_32.h	288;"	d
+__NR_mq_timedsend	src/unistd_32.h	287;"	d
+__NR_mq_unlink	src/unistd_32.h	286;"	d
+__NR_mremap	src/unistd_32.h	171;"	d
+__NR_msync	src/unistd_32.h	152;"	d
+__NR_munlock	src/unistd_32.h	159;"	d
+__NR_munlockall	src/unistd_32.h	161;"	d
+__NR_munmap	src/unistd_32.h	99;"	d
+__NR_nanosleep	src/unistd_32.h	170;"	d
+__NR_nfsservctl	src/unistd_32.h	177;"	d
+__NR_nice	src/unistd_32.h	42;"	d
+__NR_oldfstat	src/unistd_32.h	36;"	d
+__NR_oldlstat	src/unistd_32.h	92;"	d
+__NR_oldolduname	src/unistd_32.h	67;"	d
+__NR_oldstat	src/unistd_32.h	26;"	d
+__NR_olduname	src/unistd_32.h	117;"	d
+__NR_open	src/unistd_32.h	13;"	d
+__NR_openat	src/unistd_32.h	303;"	d
+__NR_pause	src/unistd_32.h	37;"	d
+__NR_personality	src/unistd_32.h	144;"	d
+__NR_pipe	src/unistd_32.h	50;"	d
+__NR_pivot_root	src/unistd_32.h	225;"	d
+__NR_poll	src/unistd_32.h	176;"	d
+__NR_ppoll	src/unistd_32.h	317;"	d
+__NR_prctl	src/unistd_32.h	180;"	d
+__NR_pread64	src/unistd_32.h	188;"	d
+__NR_prof	src/unistd_32.h	52;"	d
+__NR_profil	src/unistd_32.h	106;"	d
+__NR_pselect6	src/unistd_32.h	316;"	d
+__NR_ptrace	src/unistd_32.h	34;"	d
+__NR_putpmsg	src/unistd_32.h	197;"	d
+__NR_pwrite64	src/unistd_32.h	189;"	d
+__NR_query_module	src/unistd_32.h	175;"	d
+__NR_quotactl	src/unistd_32.h	139;"	d
+__NR_read	src/unistd_32.h	11;"	d
+__NR_readahead	src/unistd_32.h	233;"	d
+__NR_readdir	src/unistd_32.h	97;"	d
+__NR_readlink	src/unistd_32.h	93;"	d
+__NR_readlinkat	src/unistd_32.h	313;"	d
+__NR_readv	src/unistd_32.h	153;"	d
+__NR_reboot	src/unistd_32.h	96;"	d
+__NR_remap_file_pages	src/unistd_32.h	265;"	d
+__NR_removexattr	src/unistd_32.h	243;"	d
+__NR_rename	src/unistd_32.h	46;"	d
+__NR_renameat	src/unistd_32.h	310;"	d
+__NR_request_key	src/unistd_32.h	295;"	d
+__NR_restart_syscall	src/unistd_32.h	8;"	d
+__NR_rmdir	src/unistd_32.h	48;"	d
+__NR_rt_sigaction	src/unistd_32.h	182;"	d
+__NR_rt_sigpending	src/unistd_32.h	184;"	d
+__NR_rt_sigprocmask	src/unistd_32.h	183;"	d
+__NR_rt_sigqueueinfo	src/unistd_32.h	186;"	d
+__NR_rt_sigreturn	src/unistd_32.h	181;"	d
+__NR_rt_sigsuspend	src/unistd_32.h	187;"	d
+__NR_rt_sigtimedwait	src/unistd_32.h	185;"	d
+__NR_sched_get_priority_max	src/unistd_32.h	167;"	d
+__NR_sched_get_priority_min	src/unistd_32.h	168;"	d
+__NR_sched_getaffinity	src/unistd_32.h	250;"	d
+__NR_sched_getparam	src/unistd_32.h	163;"	d
+__NR_sched_getscheduler	src/unistd_32.h	165;"	d
+__NR_sched_rr_get_interval	src/unistd_32.h	169;"	d
+__NR_sched_setaffinity	src/unistd_32.h	249;"	d
+__NR_sched_setparam	src/unistd_32.h	162;"	d
+__NR_sched_setscheduler	src/unistd_32.h	164;"	d
+__NR_sched_yield	src/unistd_32.h	166;"	d
+__NR_select	src/unistd_32.h	90;"	d
+__NR_sendfile	src/unistd_32.h	195;"	d
+__NR_sendfile64	src/unistd_32.h	247;"	d
+__NR_set_mempolicy	src/unistd_32.h	284;"	d
+__NR_set_robust_list	src/unistd_32.h	319;"	d
+__NR_set_thread_area	src/unistd_32.h	251;"	d
+__NR_set_tid_address	src/unistd_32.h	266;"	d
+__NR_setdomainname	src/unistd_32.h	129;"	d
+__NR_setfsgid	src/unistd_32.h	147;"	d
+__NR_setfsgid32	src/unistd_32.h	224;"	d
+__NR_setfsuid	src/unistd_32.h	146;"	d
+__NR_setfsuid32	src/unistd_32.h	223;"	d
+__NR_setgid	src/unistd_32.h	54;"	d
+__NR_setgid32	src/unistd_32.h	222;"	d
+__NR_setgroups	src/unistd_32.h	89;"	d
+__NR_setgroups32	src/unistd_32.h	214;"	d
+__NR_sethostname	src/unistd_32.h	82;"	d
+__NR_setitimer	src/unistd_32.h	112;"	d
+__NR_setpgid	src/unistd_32.h	65;"	d
+__NR_setpriority	src/unistd_32.h	105;"	d
+__NR_setregid	src/unistd_32.h	79;"	d
+__NR_setregid32	src/unistd_32.h	212;"	d
+__NR_setresgid	src/unistd_32.h	178;"	d
+__NR_setresgid32	src/unistd_32.h	218;"	d
+__NR_setresuid	src/unistd_32.h	172;"	d
+__NR_setresuid32	src/unistd_32.h	216;"	d
+__NR_setreuid	src/unistd_32.h	78;"	d
+__NR_setreuid32	src/unistd_32.h	211;"	d
+__NR_setrlimit	src/unistd_32.h	83;"	d
+__NR_setsid	src/unistd_32.h	74;"	d
+__NR_settimeofday	src/unistd_32.h	87;"	d
+__NR_setuid	src/unistd_32.h	31;"	d
+__NR_setuid32	src/unistd_32.h	221;"	d
+__NR_setxattr	src/unistd_32.h	234;"	d
+__NR_sgetmask	src/unistd_32.h	76;"	d
+__NR_sigaction	src/unistd_32.h	75;"	d
+__NR_sigaltstack	src/unistd_32.h	194;"	d
+__NR_signal	src/unistd_32.h	56;"	d
+__NR_signalfd	src/unistd_32.h	329;"	d
+__NR_sigpending	src/unistd_32.h	81;"	d
+__NR_sigprocmask	src/unistd_32.h	134;"	d
+__NR_sigreturn	src/unistd_32.h	127;"	d
+__NR_sigsuspend	src/unistd_32.h	80;"	d
+__NR_socketcall	src/unistd_32.h	110;"	d
+__NR_splice	src/unistd_32.h	321;"	d
+__NR_ssetmask	src/unistd_32.h	77;"	d
+__NR_stat	src/unistd_32.h	114;"	d
+__NR_stat64	src/unistd_32.h	203;"	d
+__NR_statfs	src/unistd_32.h	107;"	d
+__NR_statfs64	src/unistd_32.h	276;"	d
+__NR_stime	src/unistd_32.h	33;"	d
+__NR_stty	src/unistd_32.h	39;"	d
+__NR_swapoff	src/unistd_32.h	123;"	d
+__NR_swapon	src/unistd_32.h	95;"	d
+__NR_symlink	src/unistd_32.h	91;"	d
+__NR_symlinkat	src/unistd_32.h	312;"	d
+__NR_sync	src/unistd_32.h	44;"	d
+__NR_sync_file_range	src/unistd_32.h	322;"	d
+__NR_sysfs	src/unistd_32.h	143;"	d
+__NR_sysinfo	src/unistd_32.h	124;"	d
+__NR_syslog	src/unistd_32.h	111;"	d
+__NR_tee	src/unistd_32.h	323;"	d
+__NR_tgkill	src/unistd_32.h	278;"	d
+__NR_time	src/unistd_32.h	21;"	d
+__NR_timer_create	src/unistd_32.h	267;"	d
+__NR_timer_delete	src/unistd_32.h	271;"	d
+__NR_timer_getoverrun	src/unistd_32.h	270;"	d
+__NR_timer_gettime	src/unistd_32.h	269;"	d
+__NR_timer_settime	src/unistd_32.h	268;"	d
+__NR_timerfd_create	src/unistd_32.h	330;"	d
+__NR_timerfd_gettime	src/unistd_32.h	334;"	d
+__NR_timerfd_settime	src/unistd_32.h	333;"	d
+__NR_times	src/unistd_32.h	51;"	d
+__NR_tkill	src/unistd_32.h	246;"	d
+__NR_truncate	src/unistd_32.h	100;"	d
+__NR_truncate64	src/unistd_32.h	201;"	d
+__NR_ugetrlimit	src/unistd_32.h	199;"	d
+__NR_ulimit	src/unistd_32.h	66;"	d
+__NR_umask	src/unistd_32.h	68;"	d
+__NR_umount	src/unistd_32.h	30;"	d
+__NR_umount2	src/unistd_32.h	60;"	d
+__NR_uname	src/unistd_32.h	130;"	d
+__NR_unlink	src/unistd_32.h	18;"	d
+__NR_unlinkat	src/unistd_32.h	309;"	d
+__NR_unshare	src/unistd_32.h	318;"	d
+__NR_uselib	src/unistd_32.h	94;"	d
+__NR_ustat	src/unistd_32.h	70;"	d
+__NR_utime	src/unistd_32.h	38;"	d
+__NR_utimensat	src/unistd_32.h	328;"	d
+__NR_utimes	src/unistd_32.h	279;"	d
+__NR_vfork	src/unistd_32.h	198;"	d
+__NR_vhangup	src/unistd_32.h	119;"	d
+__NR_vm86	src/unistd_32.h	174;"	d
+__NR_vm86old	src/unistd_32.h	121;"	d
+__NR_vmsplice	src/unistd_32.h	324;"	d
+__NR_vserver	src/unistd_32.h	281;"	d
+__NR_wait4	src/unistd_32.h	122;"	d
+__NR_waitid	src/unistd_32.h	292;"	d
+__NR_waitpid	src/unistd_32.h	15;"	d
+__NR_write	src/unistd_32.h	12;"	d
+__NR_writev	src/unistd_32.h	154;"	d
+__SYSCALL_DESC_H__	src/syscall_desc.h	34;"	d
+__TAGMAP_H__	src/tagmap.h	41;"	d
+__WORDSIZE	src/syscall.h	3;"	d
+__bits	src/syscall_desc.cpp	/^  __cpu_mask __bits[__CPU_SETSIZE \/ __NCPUBITS];$/;"	m	struct:__anon20	file:
+__buf	src/syscall_desc.h	/^	struct seminfo	*__buf;$/;"	m	union:semun	typeref:struct:semun::seminfo
+__cpu_mask	src/syscall_desc.cpp	/^typedef unsigned long int __cpu_mask;$/;"	t	file:
+__csh	src/syscall_desc.cpp	/^        unsigned short cs, __csh;$/;"	m	struct:vm86_regs	file:
+__dsh	src/syscall_desc.cpp	/^        unsigned short ds, __dsh;$/;"	m	struct:vm86_regs	file:
+__esh	src/syscall_desc.cpp	/^        unsigned short es, __esh;$/;"	m	struct:vm86_regs	file:
+__fsh	src/syscall_desc.cpp	/^        unsigned short fs, __fsh;$/;"	m	struct:vm86_regs	file:
+__func__	src/libdft_api.cpp	49;"	d	file:
+__func__	src/libdft_core.cpp	56;"	d	file:
+__func__	tools/libdft-dta.cpp	56;"	d	file:
+__gsh	src/syscall_desc.cpp	/^        unsigned short gs, __gsh;$/;"	m	struct:vm86_regs	file:
+__kernel_caddr_t	src/syscall_desc.cpp	/^typedef char *          __kernel_caddr_t;$/;"	t	file:
+__kernel_clock_t	src/syscall_desc.cpp	/^typedef long            __kernel_clock_t;$/;"	t	file:
+__kernel_clockid_t	src/syscall_desc.cpp	/^typedef int             __kernel_clockid_t;$/;"	t	file:
+__kernel_daddr_t	src/syscall_desc.cpp	/^typedef int             __kernel_daddr_t;$/;"	t	file:
+__kernel_fd_set	src/syscall_desc.cpp	/^} __kernel_fd_set;$/;"	t	typeref:struct:__anon11	file:
+__kernel_fsid_t	src/syscall_desc.cpp	/^} __kernel_fsid_t;$/;"	t	typeref:struct:__anon12	file:
+__kernel_gid16_t	src/syscall_desc.cpp	/^typedef unsigned short  __kernel_gid16_t;$/;"	t	file:
+__kernel_gid32_t	src/syscall_desc.cpp	/^typedef __kernel_gid_t __kernel_gid32_t;$/;"	t	file:
+__kernel_gid_t	src/syscall_desc.cpp	/^typedef unsigned int    __kernel_gid_t;$/;"	t	file:
+__kernel_ino_t	src/syscall_desc.cpp	/^typedef unsigned int    __kernel_ino_t;$/;"	t	file:
+__kernel_ipc_pid_t	src/syscall_desc.cpp	/^typedef int             __kernel_ipc_pid_t;$/;"	t	file:
+__kernel_loff_t	src/syscall_desc.cpp	/^typedef long long       __kernel_loff_t;$/;"	t	file:
+__kernel_mode_t	src/syscall_desc.cpp	/^typedef unsigned int    __kernel_mode_t;$/;"	t	file:
+__kernel_nlink_t	src/syscall_desc.cpp	/^typedef unsigned int    __kernel_nlink_t;$/;"	t	file:
+__kernel_off_t	src/syscall_desc.cpp	/^typedef long            __kernel_off_t;$/;"	t	file:
+__kernel_old_gid_t	src/syscall_desc.cpp	/^typedef __kernel_gid_t __kernel_old_gid_t;$/;"	t	file:
+__kernel_old_uid_t	src/syscall_desc.cpp	/^typedef __kernel_uid_t __kernel_old_uid_t;$/;"	t	file:
+__kernel_pid_t	src/syscall_desc.cpp	/^typedef int             __kernel_pid_t;$/;"	t	file:
+__kernel_ptrdiff_t	src/syscall_desc.cpp	/^typedef long            __kernel_ptrdiff_t;$/;"	t	file:
+__kernel_sigset_t	src/syscall_desc.cpp	/^typedef unsigned long   __kernel_sigset_t;      \/* at least 32 bits *\/$/;"	t	file:
+__kernel_size_t	src/syscall_desc.cpp	/^typedef unsigned long   __kernel_size_t;$/;"	t	file:
+__kernel_ssize_t	src/syscall_desc.cpp	/^typedef long            __kernel_ssize_t;$/;"	t	file:
+__kernel_suseconds_t	src/syscall_desc.cpp	/^typedef long            __kernel_suseconds_t;$/;"	t	file:
+__kernel_suseconds_t	src/syscall_desc.cpp	/^typedef long __kernel_suseconds_t;$/;"	t	file:
+__kernel_time_t	src/syscall_desc.cpp	/^typedef long            __kernel_time_t;$/;"	t	file:
+__kernel_timer_t	src/syscall_desc.cpp	/^typedef int             __kernel_timer_t;$/;"	t	file:
+__kernel_uid16_t	src/syscall_desc.cpp	/^typedef unsigned short  __kernel_uid16_t;$/;"	t	file:
+__kernel_uid32_t	src/syscall_desc.cpp	/^typedef __kernel_uid_t __kernel_uid32_t;$/;"	t	file:
+__kernel_uid_t	src/syscall_desc.cpp	/^typedef unsigned int    __kernel_uid_t;$/;"	t	file:
+__key	src/syscall_desc.h	/^    signed int __key;                      \/* Key.  *\/$/;"	m	struct:ipc_perm
+__map	src/syscall_desc.cpp	/^        unsigned long __map[8];                 \/* 256 bits *\/$/;"	m	struct:revectored_struct	file:
+__null_ds	src/syscall_desc.cpp	/^        long __null_ds;$/;"	m	struct:vm86_regs	file:
+__null_es	src/syscall_desc.cpp	/^        long __null_es;$/;"	m	struct:vm86_regs	file:
+__null_fs	src/syscall_desc.cpp	/^        long __null_fs;$/;"	m	struct:vm86_regs	file:
+__null_gs	src/syscall_desc.cpp	/^        long __null_gs;$/;"	m	struct:vm86_regs	file:
+__old_kernel_stat	src/syscall_desc.cpp	/^struct __old_kernel_stat {$/;"	s	file:
+__pad0	src/syscall_desc.cpp	/^        unsigned char   __pad0[4];$/;"	m	struct:stat64	file:
+__pad1	src/syscall_desc.h	/^    unsigned short int __pad1;$/;"	m	struct:ipc_perm
+__pad2	src/syscall_desc.h	/^    unsigned short int __pad2;$/;"	m	struct:ipc_perm
+__pad3	src/syscall_desc.cpp	/^        unsigned char   __pad3[4];$/;"	m	struct:stat64	file:
+__restorefn_t	src/syscall_desc.cpp	/^typedef void __restorefn_t(void);$/;"	t	file:
+__s32	src/syscall_desc.cpp	/^typedef signed int __s32;$/;"	t	file:
+__s64	src/syscall_desc.cpp	/^typedef signed __int64 __s64;$/;"	t	file:
+__seq	src/syscall_desc.h	/^    unsigned short int __seq;           \/* Sequence number.  *\/$/;"	m	struct:ipc_perm
+__sighandler_t	src/syscall_desc.cpp	/^typedef __signalfn_t *__sighandler_t;$/;"	t	file:
+__signalfn_t	src/syscall_desc.cpp	/^typedef void __signalfn_t(int);$/;"	t	file:
+__sigrestore_t	src/syscall_desc.cpp	/^typedef __restorefn_t *__sigrestore_t;$/;"	t	file:
+__ssh	src/syscall_desc.cpp	/^        unsigned short ss, __ssh;$/;"	m	struct:vm86_regs	file:
+__st_ino	src/syscall_desc.cpp	/^        unsigned long   __st_ino;$/;"	m	struct:stat64	file:
+__sysctl_args	src/syscall_desc.cpp	/^struct __sysctl_args {$/;"	s	file:
+__u32	src/syscall_desc.cpp	/^typedef unsigned int __u32;$/;"	t	file:
+__u64	src/syscall_desc.cpp	/^typedef unsigned __int64 __u64;$/;"	t	file:
+__unused	src/syscall_desc.cpp	/^        unsigned long __unused[4];$/;"	m	struct:__sysctl_args	file:
+__unused1	src/syscall_desc.h	/^    unsigned long int __unused1;$/;"	m	struct:ipc_perm
+__unused2	src/syscall_desc.h	/^    unsigned long int __unused2;$/;"	m	struct:ipc_perm
+__user	src/syscall_desc.cpp	68;"	d	file:
+__user_cap_data_struct	src/syscall_desc.h	/^typedef struct __user_cap_data_struct {$/;"	s
+__user_cap_header_struct	src/syscall_desc.h	/^typedef struct __user_cap_header_struct {$/;"	s
+_addr	src/syscall_desc.cpp	/^                        void __user *_addr; \/* faulting insn\/memory ref. *\/$/;"	m	struct:siginfo::__anon13::__anon18	file:
+_band	src/syscall_desc.cpp	/^                        __ARCH_SI_BAND_T _band; \/* POLL_IN, POLL_OUT, POLL_MSG *\/$/;"	m	struct:siginfo::__anon13::__anon19	file:
+_cmpxchg_m2r_opl_fast	src/libdft_core.cpp	/^_cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)$/;"	f	file:
+_cmpxchg_m2r_opw_fast	src/libdft_core.cpp	/^_cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)$/;"	f	file:
+_cmpxchg_r2m_opl_slow	src/libdft_core.cpp	/^_cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+_cmpxchg_r2m_opw_slow	src/libdft_core.cpp	/^_cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+_cmpxchg_r2r_opl_fast	src/libdft_core.cpp	/^_cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,$/;"	f	file:
+_cmpxchg_r2r_opl_slow	src/libdft_core.cpp	/^_cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_cmpxchg_r2r_opw_fast	src/libdft_core.cpp	/^_cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,$/;"	f	file:
+_cmpxchg_r2r_opw_slow	src/libdft_core.cpp	/^_cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_cwde	src/libdft_core.cpp	/^_cwde(thread_ctx_t *thread_ctx)$/;"	f	file:
+_f	src/syscall_desc.cpp	/^        char _f[20-2*sizeof(long)-sizeof(int)]; \/* Padding: libc5 uses this.. *\/$/;"	m	struct:sysinfo	file:
+_fd	src/syscall_desc.cpp	/^                        int _fd;$/;"	m	struct:siginfo::__anon13::__anon19	file:
+_kill	src/syscall_desc.cpp	/^                } _kill;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon14	file:
+_lea_r2r_opl	src/libdft_core.cpp	/^_lea_r2r_opl(thread_ctx_t *thread_ctx,$/;"	f	file:
+_lea_r2r_opw	src/libdft_core.cpp	/^_lea_r2r_opw(thread_ctx_t *thread_ctx,$/;"	f	file:
+_movsx_m2r_oplb	src/libdft_core.cpp	/^_movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_movsx_m2r_oplw	src/libdft_core.cpp	/^_movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movsx_m2r_opwb	src/libdft_core.cpp	/^_movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_movsx_r2r_oplb_l	src/libdft_core.cpp	/^_movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movsx_r2r_oplb_u	src/libdft_core.cpp	/^_movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movsx_r2r_oplw	src/libdft_core.cpp	/^_movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movsx_r2r_opwb_l	src/libdft_core.cpp	/^_movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movsx_r2r_opwb_u	src/libdft_core.cpp	/^_movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_m2r_oplb	src/libdft_core.cpp	/^_movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_movzx_m2r_oplw	src/libdft_core.cpp	/^_movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_m2r_opwb	src/libdft_core.cpp	/^_movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_movzx_r2r_oplb_l	src/libdft_core.cpp	/^_movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_r2r_oplb_u	src/libdft_core.cpp	/^_movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_r2r_oplw	src/libdft_core.cpp	/^_movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_r2r_opwb_l	src/libdft_core.cpp	/^_movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_movzx_r2r_opwb_u	src/libdft_core.cpp	/^_movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_overrun	src/syscall_desc.cpp	/^                        int _overrun;           \/* overrun count *\/$/;"	m	struct:siginfo::__anon13::__anon15	file:
+_pad	src/syscall_desc.cpp	/^                int _pad[SI_PAD_SIZE];$/;"	m	union:siginfo::__anon13	file:
+_pid	src/syscall_desc.cpp	/^                        pid_t _pid;             \/* sender's pid *\/$/;"	m	struct:siginfo::__anon13::__anon14	file:
+_pid	src/syscall_desc.cpp	/^                        pid_t _pid;             \/* sender's pid *\/$/;"	m	struct:siginfo::__anon13::__anon16	file:
+_pid	src/syscall_desc.cpp	/^                        pid_t _pid;             \/* which child *\/$/;"	m	struct:siginfo::__anon13::__anon17	file:
+_rt	src/syscall_desc.cpp	/^                } _rt;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon16	file:
+_sifields	src/syscall_desc.cpp	/^        } _sifields;$/;"	m	struct:siginfo	typeref:union:siginfo::__anon13	file:
+_sigchld	src/syscall_desc.cpp	/^                } _sigchld;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon17	file:
+_sigfault	src/syscall_desc.cpp	/^                } _sigfault;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon18	file:
+_sigpoll	src/syscall_desc.cpp	/^                } _sigpoll;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon19	file:
+_sigval	src/syscall_desc.cpp	/^                        sigval_t _sigval;       \/* same as below *\/$/;"	m	struct:siginfo::__anon13::__anon15	file:
+_sigval	src/syscall_desc.cpp	/^                        sigval_t _sigval;$/;"	m	struct:siginfo::__anon13::__anon16	file:
+_status	src/syscall_desc.cpp	/^                        int _status;            \/* exit code *\/$/;"	m	struct:siginfo::__anon13::__anon17	file:
+_stime	src/syscall_desc.cpp	/^                        clock_t _stime;$/;"	m	struct:siginfo::__anon13::__anon17	file:
+_sys_private	src/syscall_desc.cpp	/^                        int _sys_private;       \/* not to be passed to user *\/$/;"	m	struct:siginfo::__anon13::__anon15	file:
+_tid	src/syscall_desc.cpp	/^                        timer_t _tid;           \/* timer id *\/$/;"	m	struct:siginfo::__anon13::__anon15	file:
+_timer	src/syscall_desc.cpp	/^                } _timer;$/;"	m	union:siginfo::__anon13	typeref:struct:siginfo::__anon13::__anon15	file:
+_uid	src/syscall_desc.cpp	/^                        __ARCH_SI_UID_T _uid;   \/* sender's uid *\/$/;"	m	struct:siginfo::__anon13::__anon14	file:
+_uid	src/syscall_desc.cpp	/^                        __ARCH_SI_UID_T _uid;   \/* sender's uid *\/$/;"	m	struct:siginfo::__anon13::__anon16	file:
+_uid	src/syscall_desc.cpp	/^                        __ARCH_SI_UID_T _uid;   \/* sender's uid *\/$/;"	m	struct:siginfo::__anon13::__anon17	file:
+_utime	src/syscall_desc.cpp	/^                        clock_t _utime;$/;"	m	struct:siginfo::__anon13::__anon17	file:
+_xadd_m2r_opb_l	src/libdft_core.cpp	/^_xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xadd_m2r_opb_u	src/libdft_core.cpp	/^_xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xadd_m2r_opl	src/libdft_core.cpp	/^_xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xadd_m2r_opw	src/libdft_core.cpp	/^_xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xadd_r2r_opb_l	src/libdft_core.cpp	/^_xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xadd_r2r_opb_lu	src/libdft_core.cpp	/^_xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xadd_r2r_opb_u	src/libdft_core.cpp	/^_xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xadd_r2r_opb_ul	src/libdft_core.cpp	/^_xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xadd_r2r_opw	src/libdft_core.cpp	/^_xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xchg_m2r_opb_l	src/libdft_core.cpp	/^_xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xchg_m2r_opb_u	src/libdft_core.cpp	/^_xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xchg_m2r_opl	src/libdft_core.cpp	/^_xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xchg_m2r_opw	src/libdft_core.cpp	/^_xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+_xchg_r2r_opb_l	src/libdft_core.cpp	/^_xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xchg_r2r_opb_lu	src/libdft_core.cpp	/^_xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xchg_r2r_opb_u	src/libdft_core.cpp	/^_xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xchg_r2r_opb_ul	src/libdft_core.cpp	/^_xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+_xchg_r2r_opw	src/libdft_core.cpp	/^_xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+aio_context_t	src/syscall_desc.cpp	/^typedef unsigned long   aio_context_t;$/;"	t	file:
+alert	tools/libdft-dta.cpp	/^alert(ADDRINT ins, ADDRINT bt)$/;"	f	file:
+alter	src/syscall_desc.h	/^        int                     alter;   \/* does the operation alter the array? *\/$/;"	m	struct:sem_queue
+arg	src/libdft_api.h	/^	ADDRINT arg[SYSCALL_ARG_NUM];	\/* arguments *\/$/;"	m	struct:__anon4
+array	src/syscall_desc.h	/^	unsigned short	*array;$/;"	m	union:semun
+assert_mem16	tools/libdft-dta.cpp	/^assert_mem16(ADDRINT paddr, ADDRINT taddr)$/;"	f	file:
+assert_mem32	tools/libdft-dta.cpp	/^assert_mem32(ADDRINT paddr, ADDRINT taddr)$/;"	f	file:
+assert_reg16	tools/libdft-dta.cpp	/^assert_reg16(thread_ctx_t *thread_ctx, uint32_t reg, uint32_t addr)$/;"	f	file:
+assert_reg32	tools/libdft-dta.cpp	/^assert_reg32(thread_ctx_t *thread_ctx, uint32_t reg, uint32_t addr)$/;"	f	file:
+aux	src/libdft_api.h	/^	void	*aux;			\/* auxiliary data (processor state) *\/$/;"	m	struct:__anon4
+base_addr	src/syscall_desc.cpp	/^        unsigned int  base_addr;$/;"	m	struct:user_desc	file:
+bitmap	src/tagmap.cpp	/^uint8_t *bitmap = NULL;$/;"	v
+blob	src/syscall_desc.h	/^	unsigned long blob[128 \/ sizeof(long)];$/;"	m	struct:getcpu_cache
+break_lock	src/syscall_desc.h	/^        unsigned int break_lock;$/;"	m	struct:__anon9
+buf	src/syscall_desc.h	/^	struct semid_ds	*buf;$/;"	m	union:semun	typeref:struct:semun::semid_ds
+bufferram	src/syscall_desc.cpp	/^        unsigned long bufferram;        \/* Memory used by buffers *\/$/;"	m	struct:sysinfo	file:
+calcnt	src/syscall_desc.cpp	/^        long calcnt;            \/* calibration intervals (ro) *\/$/;"	m	struct:timex	file:
+cap_user_data_t	src/syscall_desc.h	/^} *cap_user_data_t;$/;"	t	typeref:struct:__user_cap_data_struct
+cap_user_header_t	src/syscall_desc.h	/^} *cap_user_header_t;$/;"	t	typeref:struct:__user_cap_header_struct
+cgid	src/syscall_desc.h	/^        unsigned int           cgid;$/;"	m	struct:kern_ipc_perm
+cgid	src/syscall_desc.h	/^    unsigned int cgid;                       \/* Creator's group ID.  *\/$/;"	m	struct:ipc_perm
+clock_t	src/syscall_desc.cpp	/^typedef __kernel_clock_t        clock_t;$/;"	t	file:
+constant	src/syscall_desc.cpp	/^        long constant;          \/* pll time constant *\/$/;"	m	struct:timex	file:
+contents	src/syscall_desc.cpp	/^        unsigned int  contents:2;$/;"	m	struct:user_desc	file:
+cpu_set_t	src/syscall_desc.cpp	/^} cpu_set_t;$/;"	t	typeref:struct:__anon20	file:
+cpu_type	src/syscall_desc.cpp	/^        unsigned long cpu_type;$/;"	m	struct:vm86_struct	file:
+cpu_type	src/syscall_desc.cpp	/^        unsigned long cpu_type;$/;"	m	struct:vm86plus_struct	file:
+cs	src/syscall_desc.cpp	/^        unsigned short cs, __csh;$/;"	m	struct:vm86_regs	file:
+cuid	src/syscall_desc.h	/^        unsigned int           cuid;$/;"	m	struct:kern_ipc_perm
+cuid	src/syscall_desc.h	/^    unsigned int cuid;                       \/* Creator's user ID.  *\/$/;"	m	struct:ipc_perm
+d_bcount	src/syscall_desc.h	/^	unsigned __int64	d_bcount;$/;"	m	struct:fs_disk_quota
+d_blk_hardlimit	src/syscall_desc.h	/^	unsigned __int64	d_blk_hardlimit;$/;"	m	struct:fs_disk_quota
+d_blk_softlimit	src/syscall_desc.h	/^	unsigned __int64	d_blk_softlimit;$/;"	m	struct:fs_disk_quota
+d_btimer	src/syscall_desc.h	/^	signed int	d_btimer;$/;"	m	struct:fs_disk_quota
+d_bwarns	src/syscall_desc.h	/^	unsigned short		d_bwarns;$/;"	m	struct:fs_disk_quota
+d_fieldmask	src/syscall_desc.h	/^	unsigned short		d_fieldmask;$/;"	m	struct:fs_disk_quota
+d_flags	src/syscall_desc.h	/^	signed char	d_flags;$/;"	m	struct:fs_disk_quota
+d_icount	src/syscall_desc.h	/^	unsigned __int64	d_icount;$/;"	m	struct:fs_disk_quota
+d_id	src/syscall_desc.h	/^	unsigned int	d_id;$/;"	m	struct:fs_disk_quota
+d_ino	src/syscall_desc.h	/^	unsigned long	d_ino;$/;"	m	struct:linux_dirent
+d_ino	src/syscall_desc.h	/^	unsigned long	d_ino;$/;"	m	struct:old_linux_dirent
+d_ino_hardlimit	src/syscall_desc.h	/^	unsigned __int64	d_ino_hardlimit;$/;"	m	struct:fs_disk_quota
+d_ino_softlimit	src/syscall_desc.h	/^	unsigned __int64	d_ino_softlimit;$/;"	m	struct:fs_disk_quota
+d_itimer	src/syscall_desc.h	/^	signed int	d_itimer;$/;"	m	struct:fs_disk_quota
+d_iwarns	src/syscall_desc.h	/^	unsigned short		d_iwarns;$/;"	m	struct:fs_disk_quota
+d_name	src/syscall_desc.h	/^	char		d_name[1];$/;"	m	struct:linux_dirent
+d_name	src/syscall_desc.h	/^	char		d_name[1];$/;"	m	struct:old_linux_dirent
+d_namlen	src/syscall_desc.h	/^	unsigned short	d_namlen;$/;"	m	struct:old_linux_dirent
+d_off	src/syscall_desc.h	/^	unsigned long	d_off;$/;"	m	struct:linux_dirent
+d_offset	src/syscall_desc.h	/^	unsigned long	d_offset;$/;"	m	struct:old_linux_dirent
+d_padding2	src/syscall_desc.h	/^	signed int	d_padding2;$/;"	m	struct:fs_disk_quota
+d_padding3	src/syscall_desc.h	/^	signed short	d_padding3;$/;"	m	struct:fs_disk_quota
+d_padding4	src/syscall_desc.h	/^	char	d_padding4[8];$/;"	m	struct:fs_disk_quota
+d_reclen	src/syscall_desc.h	/^	unsigned short	d_reclen;$/;"	m	struct:linux_dirent
+d_rtb_hardlimit	src/syscall_desc.h	/^	unsigned __int64	d_rtb_hardlimit;$/;"	m	struct:fs_disk_quota
+d_rtb_softlimit	src/syscall_desc.h	/^	unsigned __int64	d_rtb_softlimit;$/;"	m	struct:fs_disk_quota
+d_rtbcount	src/syscall_desc.h	/^	unsigned __int64	d_rtbcount;$/;"	m	struct:fs_disk_quota
+d_rtbtimer	src/syscall_desc.h	/^	signed int	d_rtbtimer;$/;"	m	struct:fs_disk_quota
+d_rtbwarns	src/syscall_desc.h	/^	unsigned short		d_rtbwarns;$/;"	m	struct:fs_disk_quota
+d_version	src/syscall_desc.h	/^	signed char	d_version;$/;"	m	struct:fs_disk_quota
+data	src/syscall_desc.cpp	/^        unsigned __int64           data;           \/* the data field from the iocb *\/$/;"	m	struct:io_event	file:
+data	src/syscall_desc.cpp	/^        unsigned __int64 data;$/;"	m	struct:epoll_event	file:
+deleted	src/syscall_desc.h	/^        int             deleted;$/;"	m	struct:kern_ipc_perm
+dflact	src/libdft_api.h	/^	size_t	dflact;                 \/* default instrumentation predicate *\/$/;"	m	struct:__anon6
+domainname	src/syscall_desc.cpp	/^        char domainname[65];$/;"	m	struct:new_utsname	file:
+dqb_bhardlimit	src/syscall_desc.h	/^	unsigned __int64 dqb_bhardlimit;$/;"	m	struct:if_dqblk
+dqb_bsoftlimit	src/syscall_desc.h	/^	unsigned __int64 dqb_bsoftlimit;$/;"	m	struct:if_dqblk
+dqb_btime	src/syscall_desc.h	/^	unsigned __int64 dqb_btime;$/;"	m	struct:if_dqblk
+dqb_curinodes	src/syscall_desc.h	/^	unsigned __int64 dqb_curinodes;$/;"	m	struct:if_dqblk
+dqb_curspace	src/syscall_desc.h	/^	unsigned __int64 dqb_curspace;$/;"	m	struct:if_dqblk
+dqb_ihardlimit	src/syscall_desc.h	/^	unsigned __int64 dqb_ihardlimit;$/;"	m	struct:if_dqblk
+dqb_isoftlimit	src/syscall_desc.h	/^	unsigned __int64 dqb_isoftlimit;$/;"	m	struct:if_dqblk
+dqb_itime	src/syscall_desc.h	/^	unsigned __int64 dqb_itime;$/;"	m	struct:if_dqblk
+dqb_valid	src/syscall_desc.h	/^	unsigned int dqb_valid;$/;"	m	struct:if_dqblk
+dqi_bgrace	src/syscall_desc.h	/^	unsigned __int64 dqi_bgrace;$/;"	m	struct:if_dqinfo
+dqi_flags	src/syscall_desc.h	/^	unsigned __int64 dqi_flags;$/;"	m	struct:if_dqinfo
+dqi_igrace	src/syscall_desc.h	/^	unsigned __int64 dqi_igrace;$/;"	m	struct:if_dqinfo
+dqi_valid	src/syscall_desc.h	/^	unsigned __int64 dqi_valid;$/;"	m	struct:if_dqinfo
+ds	src/syscall_desc.cpp	/^        unsigned short ds, __dsh;$/;"	m	struct:vm86_regs	file:
+dta_instrument_jmp_call	tools/libdft-dta.cpp	/^dta_instrument_jmp_call(INS ins)$/;"	f	file:
+dta_instrument_ret	tools/libdft-dta.cpp	/^dta_instrument_ret(INS ins)$/;"	f	file:
+eax	src/syscall_desc.cpp	/^        long eax;$/;"	m	struct:vm86_regs	file:
+ebp	src/syscall_desc.cpp	/^        long ebp;$/;"	m	struct:vm86_regs	file:
+ebx	src/syscall_desc.cpp	/^        long ebx;$/;"	m	struct:vm86_regs	file:
+ecx	src/syscall_desc.cpp	/^        long ecx;$/;"	m	struct:vm86_regs	file:
+edi	src/syscall_desc.cpp	/^        long edi;$/;"	m	struct:vm86_regs	file:
+edx	src/syscall_desc.cpp	/^        long edx;$/;"	m	struct:vm86_regs	file:
+effective	src/syscall_desc.h	/^	unsigned int effective;$/;"	m	struct:__user_cap_data_struct
+eflags	src/syscall_desc.cpp	/^        long eflags;$/;"	m	struct:vm86_regs	file:
+eip	src/syscall_desc.cpp	/^        long eip;$/;"	m	struct:vm86_regs	file:
+entry_number	src/syscall_desc.cpp	/^        unsigned int  entry_number;$/;"	m	struct:user_desc	file:
+epoll_event	src/syscall_desc.cpp	/^struct epoll_event {$/;"	s	file:
+errcnt	src/syscall_desc.cpp	/^        long errcnt;            \/* calibration errors (ro) *\/$/;"	m	struct:timex	file:
+es	src/syscall_desc.cpp	/^        unsigned short es, __esh;$/;"	m	struct:vm86_regs	file:
+esi	src/syscall_desc.cpp	/^        long esi;$/;"	m	struct:vm86_regs	file:
+esp	src/syscall_desc.cpp	/^        long esp;$/;"	m	struct:vm86_regs	file:
+esterror	src/syscall_desc.cpp	/^        long esterror;          \/* estimated error (usec) *\/$/;"	m	struct:timex	file:
+events	src/syscall_desc.cpp	/^        short events;$/;"	m	struct:pollfd	file:
+events	src/syscall_desc.cpp	/^        unsigned int events;$/;"	m	struct:epoll_event	file:
+f_bavail	src/syscall_desc.cpp	/^        long f_bavail;$/;"	m	struct:statfs	file:
+f_bavail	src/syscall_desc.cpp	/^        long f_bavail;$/;"	m	struct:statfs64	file:
+f_bfree	src/syscall_desc.cpp	/^        long f_bfree;$/;"	m	struct:statfs	file:
+f_bfree	src/syscall_desc.cpp	/^        long f_bfree;$/;"	m	struct:statfs64	file:
+f_blocks	src/syscall_desc.cpp	/^        long f_blocks;$/;"	m	struct:statfs	file:
+f_blocks	src/syscall_desc.cpp	/^        long f_blocks;$/;"	m	struct:statfs64	file:
+f_bsize	src/syscall_desc.cpp	/^        long f_bsize;$/;"	m	struct:statfs	file:
+f_bsize	src/syscall_desc.cpp	/^        long f_bsize;$/;"	m	struct:statfs64	file:
+f_ffree	src/syscall_desc.cpp	/^        long f_ffree;$/;"	m	struct:statfs	file:
+f_ffree	src/syscall_desc.cpp	/^        long f_ffree;$/;"	m	struct:statfs64	file:
+f_files	src/syscall_desc.cpp	/^        long f_files;$/;"	m	struct:statfs	file:
+f_files	src/syscall_desc.cpp	/^        long f_files;$/;"	m	struct:statfs64	file:
+f_fname	src/syscall_desc.cpp	/^        char                    f_fname[6];$/;"	m	struct:ustat	file:
+f_fpack	src/syscall_desc.cpp	/^        char                    f_fpack[6];$/;"	m	struct:ustat	file:
+f_frsize	src/syscall_desc.cpp	/^        long f_frsize;$/;"	m	struct:statfs	file:
+f_frsize	src/syscall_desc.cpp	/^        long f_frsize;$/;"	m	struct:statfs64	file:
+f_fsid	src/syscall_desc.cpp	/^        __kernel_fsid_t f_fsid;$/;"	m	struct:statfs	file:
+f_fsid	src/syscall_desc.cpp	/^        __kernel_fsid_t f_fsid;$/;"	m	struct:statfs64	file:
+f_handle	src/syscall_desc.h	/^	unsigned char	f_handle[0];$/;"	m	struct:file_handle
+f_namelen	src/syscall_desc.cpp	/^        long f_namelen;$/;"	m	struct:statfs	file:
+f_namelen	src/syscall_desc.cpp	/^        long f_namelen;$/;"	m	struct:statfs64	file:
+f_spare	src/syscall_desc.cpp	/^        long f_spare[5];$/;"	m	struct:statfs	file:
+f_spare	src/syscall_desc.cpp	/^        long f_spare[5];$/;"	m	struct:statfs64	file:
+f_tfree	src/syscall_desc.cpp	/^        int                     f_tfree;$/;"	m	struct:ustat	file:
+f_tinode	src/syscall_desc.cpp	/^        unsigned int           f_tinode;$/;"	m	struct:ustat	file:
+f_type	src/syscall_desc.cpp	/^        long f_type;$/;"	m	struct:statfs	file:
+f_type	src/syscall_desc.cpp	/^        long f_type;$/;"	m	struct:statfs64	file:
+fd	src/syscall_desc.cpp	/^        int fd;$/;"	m	struct:pollfd	file:
+fd_set	src/syscall_desc.cpp	/^typedef __kernel_fd_set         fd_set;$/;"	t	file:
+fds_bits	src/syscall_desc.cpp	/^        unsigned long fds_bits [__FDSET_LONGS];$/;"	m	struct:__anon11	file:
+fdset	tools/libdft-dta.cpp	/^static set<int> fdset;$/;"	v	file:
+file_handle	src/syscall_desc.h	/^struct file_handle {$/;"	s
+fix_eflags	src/libdft_api.cpp	/^fix_eflags(THREADID tid, EXCEPTION_INFO *pExceptInfo,$/;"	f	file:
+flags	src/syscall_desc.cpp	/^        unsigned long flags;$/;"	m	struct:vm86_struct	file:
+flags	src/syscall_desc.cpp	/^        unsigned long flags;$/;"	m	struct:vm86plus_struct	file:
+flock	src/syscall_desc.cpp	/^struct flock {$/;"	s	file:
+flock64	src/syscall_desc.cpp	/^struct flock64 {$/;"	s	file:
+force_return_for_pic	src/syscall_desc.cpp	/^        unsigned long force_return_for_pic:1;$/;"	m	struct:vm86plus_info_struct	file:
+freehigh	src/syscall_desc.cpp	/^        unsigned long freehigh;         \/* Available high memory size *\/$/;"	m	struct:sysinfo	file:
+freeram	src/syscall_desc.cpp	/^        unsigned long freeram;          \/* Available memory size *\/$/;"	m	struct:sysinfo	file:
+freeswap	src/syscall_desc.cpp	/^        unsigned long freeswap;         \/* swap space still available *\/$/;"	m	struct:sysinfo	file:
+freq	src/syscall_desc.cpp	/^        long freq;              \/* frequency offset (scaled ppm) *\/$/;"	m	struct:timex	file:
+fs	src/syscall_desc.cpp	/^        unsigned short fs, __fsh;$/;"	m	struct:vm86_regs	file:
+fs_disk_quota	src/syscall_desc.h	/^struct fs_disk_quota {$/;"	s
+fs_qfilestat	src/syscall_desc.h	/^typedef struct fs_qfilestat {$/;"	s
+fs_qfilestat_t	src/syscall_desc.h	/^} fs_qfilestat_t;$/;"	t	typeref:struct:fs_qfilestat
+fs_quota_stat	src/syscall_desc.h	/^struct fs_quota_stat {$/;"	s
+getcpu_cache	src/syscall_desc.h	/^struct getcpu_cache {$/;"	s
+gid	src/syscall_desc.h	/^        unsigned int           gid;$/;"	m	struct:kern_ipc_perm
+gid	src/syscall_desc.h	/^    unsigned int gid;                        \/* Owner's group ID.  *\/$/;"	m	struct:ipc_perm
+gid16_t	src/syscall_desc.cpp	/^typedef __kernel_gid16_t        gid16_t;$/;"	t	file:
+gid_t	src/syscall_desc.cpp	/^typedef __kernel_gid32_t        gid_t;$/;"	t	file:
+gpr	src/libdft_api.h	/^	unsigned int gpr[GRP_NUM + 1];$/;"	m	struct:__anon3
+gs	src/syscall_desc.cpp	/^        unsigned short gs, __gsh;$/;"	m	struct:vm86_regs	file:
+handle_bytes	src/syscall_desc.h	/^	unsigned int		handle_bytes;$/;"	m	struct:file_handle
+handle_type	src/syscall_desc.h	/^	int 		handle_type;$/;"	m	struct:file_handle
+id	src/syscall_desc.h	/^        int                     id;      \/* internal sem id *\/$/;"	m	struct:sem_queue
+id	src/syscall_desc.h	/^        int             id;$/;"	m	struct:kern_ipc_perm
+id_next	src/syscall_desc.h	/^        struct sem_undo *       id_next;        \/* next entry on this semaphore set *\/$/;"	m	struct:sem_undo	typeref:struct:sem_undo::sem_undo
+if_dqblk	src/syscall_desc.h	/^struct if_dqblk {$/;"	s
+if_dqinfo	src/syscall_desc.h	/^struct if_dqinfo {$/;"	s
+inheritable	src/syscall_desc.h	/^	unsigned int inheritable;$/;"	m	struct:__user_cap_data_struct
+ins_clr_post	src/libdft_api.cpp	/^ins_clr_post(ins_desc_t *desc)$/;"	f
+ins_clr_pre	src/libdft_api.cpp	/^ins_clr_pre(ins_desc_t *desc)$/;"	f
+ins_desc	src/libdft_api.cpp	/^ins_desc_t ins_desc[XED_ICLASS_LAST];$/;"	v
+ins_desc_t	src/libdft_api.h	/^} ins_desc_t;$/;"	t	typeref:struct:__anon6
+ins_inspect	src/libdft_core.cpp	/^ins_inspect(INS ins)$/;"	f
+ins_set_dflact	src/libdft_api.cpp	/^ins_set_dflact(ins_desc_t *desc, size_t action)$/;"	f
+ins_set_post	src/libdft_api.cpp	/^ins_set_post(ins_desc_t *desc, void (* post)(INS))$/;"	f
+ins_set_pre	src/libdft_api.cpp	/^ins_set_pre(ins_desc_t *desc, void (* pre)(INS))$/;"	f
+int16_t	src/tagmap.cpp	/^typedef short int               int16_t;$/;"	t	file:
+int21_revectored	src/syscall_desc.cpp	/^        struct revectored_struct int21_revectored;$/;"	m	struct:vm86_struct	typeref:struct:vm86_struct::revectored_struct	file:
+int21_revectored	src/syscall_desc.cpp	/^        struct revectored_struct int21_revectored;$/;"	m	struct:vm86plus_struct	typeref:struct:vm86plus_struct::revectored_struct	file:
+int32_t	src/tagmap.cpp	/^typedef int                     int32_t;$/;"	t	file:
+int64_t	src/tagmap.cpp	/^typedef __int64                int64_t;$/;"	t	file:
+int8_t	src/tagmap.cpp	/^typedef signed char             int8_t;$/;"	t	file:
+int_revectored	src/syscall_desc.cpp	/^        struct revectored_struct int_revectored;$/;"	m	struct:vm86_struct	typeref:struct:vm86_struct::revectored_struct	file:
+int_revectored	src/syscall_desc.cpp	/^        struct revectored_struct int_revectored;$/;"	m	struct:vm86plus_struct	typeref:struct:vm86plus_struct::revectored_struct	file:
+io_event	src/syscall_desc.cpp	/^struct io_event {$/;"	s	file:
+iov_base	src/syscall_desc.cpp	/^        void __user *iov_base;  \/* BSD uses caddr_t (1003.1g requires void *) *\/$/;"	m	struct:iovec	file:
+iov_base	tools/libdft-dta.cpp	/^        void *iov_base;  \/* BSD uses caddr_t (1003.1g requires void *) *\/$/;"	m	struct:iovec	file:
+iov_len	src/syscall_desc.cpp	/^        __kernel_size_t iov_len; \/* Must be size_t (1003.1g) *\/$/;"	m	struct:iovec	file:
+iov_len	tools/libdft-dta.cpp	/^        unsigned long iov_len; \/* Must be size_t (1003.1g) *\/$/;"	m	struct:iovec	file:
+iovec	src/syscall_desc.cpp	/^struct iovec$/;"	s	file:
+iovec	tools/libdft-dta.cpp	/^struct iovec$/;"	s	file:
+ipc_perm	src/syscall_desc.h	/^struct ipc_perm$/;"	s
+is_vm86pus	src/syscall_desc.cpp	/^        unsigned long is_vm86pus:1;           \/* for vm86 internal use *\/$/;"	m	struct:vm86plus_info_struct	file:
+it_interval	src/syscall_desc.cpp	/^        struct timespec it_interval;    \/* timer period *\/$/;"	m	struct:itimerspec	typeref:struct:itimerspec::timespec	file:
+it_interval	src/syscall_desc.cpp	/^        struct timeval it_interval;     \/* timer interval *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval	file:
+it_value	src/syscall_desc.cpp	/^        struct timespec it_value;       \/* timer expiration *\/$/;"	m	struct:itimerspec	typeref:struct:itimerspec::timespec	file:
+it_value	src/syscall_desc.cpp	/^        struct timeval it_value;        \/* current value *\/$/;"	m	struct:itimerval	typeref:struct:itimerval::timeval	file:
+itimerspec	src/syscall_desc.cpp	/^struct itimerspec {$/;"	s	file:
+itimerval	src/syscall_desc.cpp	/^struct itimerval {$/;"	s	file:
+jitcnt	src/syscall_desc.cpp	/^        long jitcnt;            \/* jitter limit exceeded (ro) *\/$/;"	m	struct:timex	file:
+jitter	src/syscall_desc.cpp	/^        long jitter;            \/* pps jitter (us) (ro) *\/$/;"	m	struct:timex	file:
+kern_ipc_perm	src/syscall_desc.h	/^struct kern_ipc_perm$/;"	s
+key	src/syscall_desc.h	/^        int           key;$/;"	m	struct:kern_ipc_perm
+l_len	src/syscall_desc.cpp	/^        loff_t l_len;$/;"	m	struct:flock64	file:
+l_len	src/syscall_desc.cpp	/^        off_t   l_len;$/;"	m	struct:flock	file:
+l_pid	src/syscall_desc.cpp	/^        pid_t   l_pid;$/;"	m	struct:flock	file:
+l_pid	src/syscall_desc.cpp	/^        pid_t  l_pid;$/;"	m	struct:flock64	file:
+l_start	src/syscall_desc.cpp	/^        loff_t l_start;$/;"	m	struct:flock64	file:
+l_start	src/syscall_desc.cpp	/^        off_t   l_start;$/;"	m	struct:flock	file:
+l_type	src/syscall_desc.cpp	/^        short   l_type;$/;"	m	struct:flock	file:
+l_type	src/syscall_desc.cpp	/^        short  l_type;$/;"	m	struct:flock64	file:
+l_whence	src/syscall_desc.cpp	/^        short   l_whence;$/;"	m	struct:flock	file:
+l_whence	src/syscall_desc.cpp	/^        short  l_whence;$/;"	m	struct:flock64	file:
+libdft_die	src/libdft_api.cpp	/^libdft_die(void)$/;"	f
+libdft_init	src/libdft_api.cpp	/^libdft_init()$/;"	f
+likely	src/branch_pred.h	40;"	d
+limit	src/syscall_desc.cpp	/^        unsigned int  limit;$/;"	m	struct:user_desc	file:
+limit_in_pages	src/syscall_desc.cpp	/^        unsigned int  limit_in_pages:1;$/;"	m	struct:user_desc	file:
+linux_dirent	src/syscall_desc.h	/^struct linux_dirent {$/;"	s
+list_head	src/syscall_desc.cpp	/^struct list_head {$/;"	s	file:
+loads	src/syscall_desc.cpp	/^        unsigned long loads[3];         \/* 1, 5, and 15 minute load averages *\/$/;"	m	struct:sysinfo	file:
+lock	src/syscall_desc.h	/^        spinlock_t      lock;$/;"	m	struct:kern_ipc_perm
+lock	src/syscall_desc.h	/^        volatile unsigned int lock;$/;"	m	struct:__anon8
+loff_t	src/syscall_desc.cpp	/^typedef __kernel_loff_t         loff_t;$/;"	t	file:
+m2m_xfer_opb	src/libdft_core.cpp	/^m2m_xfer_opb(ADDRINT dst, ADDRINT src)$/;"	f	file:
+m2m_xfer_opl	src/libdft_core.cpp	/^m2m_xfer_opl(ADDRINT dst, ADDRINT src)$/;"	f	file:
+m2m_xfer_opw	src/libdft_core.cpp	/^m2m_xfer_opw(ADDRINT dst, ADDRINT src)$/;"	f	file:
+m2r_binary_opb_l	src/libdft_core.cpp	/^m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_binary_opb_u	src/libdft_core.cpp	/^m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_binary_opl	src/libdft_core.cpp	/^m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_binary_opw	src/libdft_core.cpp	/^m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_restore_opl	src/libdft_core.cpp	/^m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)$/;"	f	file:
+m2r_restore_opw	src/libdft_core.cpp	/^m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)$/;"	f	file:
+m2r_ternary_opb	src/libdft_core.cpp	/^m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src)$/;"	f	file:
+m2r_ternary_opl	src/libdft_core.cpp	/^m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)$/;"	f	file:
+m2r_ternary_opw	src/libdft_core.cpp	/^m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src)$/;"	f	file:
+m2r_xfer_opb_l	src/libdft_core.cpp	/^m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_xfer_opb_u	src/libdft_core.cpp	/^m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_xfer_opl	src/libdft_core.cpp	/^m2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m2r_xfer_opw	src/libdft_core.cpp	/^m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)$/;"	f	file:
+m_list	src/syscall_desc.cpp	/^        struct list_head m_list;$/;"	m	struct:msg_msg	typeref:struct:msg_msg::list_head	file:
+m_ts	src/syscall_desc.cpp	/^        int m_ts;           \/* message text size *\/$/;"	m	struct:msg_msg	file:
+m_type	src/syscall_desc.cpp	/^        long  m_type;$/;"	m	struct:msg_msg	file:
+machine	src/syscall_desc.cpp	/^        char machine[65];$/;"	m	struct:new_utsname	file:
+machine	src/syscall_desc.cpp	/^        char machine[9];$/;"	m	struct:oldold_utsname	file:
+main	tools/libdft-dta.cpp	/^main(int argc, char **argv)$/;"	f
+main	tools/libdft.cpp	/^main(int argc, char **argv)$/;"	f
+main	tools/nullpin.cpp	/^main(int argc, char **argv)$/;"	f
+map_args	src/syscall_desc.h	/^	size_t	map_args[SYSCALL_ARG_NUM];	\/* arguments map *\/$/;"	m	struct:__anon10
+maxerror	src/syscall_desc.cpp	/^        long maxerror;          \/* maximum error (usec) *\/$/;"	m	struct:timex	file:
+mem_unit	src/syscall_desc.cpp	/^        unsigned int mem_unit;          \/* Memory unit size in bytes *\/$/;"	m	struct:sysinfo	file:
+mode	src/syscall_desc.h	/^        unsigned int          mode;$/;"	m	struct:kern_ipc_perm
+mode	src/syscall_desc.h	/^    unsigned short int mode;            \/* Read\/write permission.  *\/$/;"	m	struct:ipc_perm
+modes	src/syscall_desc.cpp	/^        unsigned int modes;     \/* mode selector *\/$/;"	m	struct:timex	file:
+mq_attr	src/syscall_desc.cpp	/^struct mq_attr {$/;"	s	file:
+mq_curmsgs	src/syscall_desc.cpp	/^        long    mq_curmsgs;     \/* number of messages currently queued  *\/$/;"	m	struct:mq_attr	file:
+mq_flags	src/syscall_desc.cpp	/^        long    mq_flags;       \/* message queue flags                  *\/$/;"	m	struct:mq_attr	file:
+mq_maxmsg	src/syscall_desc.cpp	/^        long    mq_maxmsg;      \/* maximum number of messages           *\/$/;"	m	struct:mq_attr	file:
+mq_msgsize	src/syscall_desc.cpp	/^        long    mq_msgsize;     \/* maximum message size                 *\/$/;"	m	struct:mq_attr	file:
+msg_cbytes	src/syscall_desc.cpp	/^        unsigned short msg_cbytes;      \/* current number of bytes on queue *\/$/;"	m	struct:msqid_ds	file:
+msg_control	src/syscall_desc.cpp	/^        void    *       msg_control;    \/* Per protocol magic (eg BSD file descriptor passing) *\/$/;"	m	struct:msghdr	file:
+msg_control	tools/libdft-dta.cpp	/^        void    *       msg_control;    \/* Per protocol magic (eg BSD file descriptor passing) *\/$/;"	m	struct:msghdr	file:
+msg_controllen	src/syscall_desc.cpp	/^        __kernel_size_t msg_controllen; \/* Length of cmsg list *\/$/;"	m	struct:msghdr	file:
+msg_controllen	tools/libdft-dta.cpp	/^        unsigned long msg_controllen; \/* Length of cmsg list *\/$/;"	m	struct:msghdr	file:
+msg_ctime	src/syscall_desc.cpp	/^        __kernel_time_t msg_ctime;      \/* last change time *\/$/;"	m	struct:msqid_ds	file:
+msg_first	src/syscall_desc.cpp	/^        struct msg *msg_first;          \/* first message on queue,unused  *\/$/;"	m	struct:msqid_ds	typeref:struct:msqid_ds::msg	file:
+msg_flags	src/syscall_desc.cpp	/^        unsigned        msg_flags;$/;"	m	struct:msghdr	file:
+msg_flags	tools/libdft-dta.cpp	/^        unsigned        msg_flags;$/;"	m	struct:msghdr	file:
+msg_iov	src/syscall_desc.cpp	/^        struct iovec *  msg_iov;        \/* Data blocks                  *\/$/;"	m	struct:msghdr	typeref:struct:msghdr::iovec	file:
+msg_iov	tools/libdft-dta.cpp	/^        struct iovec *  msg_iov;        \/* Data blocks                  *\/$/;"	m	struct:msghdr	typeref:struct:msghdr::iovec	file:
+msg_iovlen	src/syscall_desc.cpp	/^        __kernel_size_t msg_iovlen;     \/* Number of blocks             *\/$/;"	m	struct:msghdr	file:
+msg_iovlen	tools/libdft-dta.cpp	/^        unsigned long msg_iovlen;     \/* Number of blocks             *\/$/;"	m	struct:msghdr	file:
+msg_last	src/syscall_desc.cpp	/^        struct msg *msg_last;           \/* last message in queue,unused *\/$/;"	m	struct:msqid_ds	typeref:struct:msqid_ds::msg	file:
+msg_lcbytes	src/syscall_desc.cpp	/^        unsigned long  msg_lcbytes;     \/* Reuse junk fields for 32 bit *\/$/;"	m	struct:msqid_ds	file:
+msg_lqbytes	src/syscall_desc.cpp	/^        unsigned long  msg_lqbytes;     \/* ditto *\/$/;"	m	struct:msqid_ds	file:
+msg_lrpid	src/syscall_desc.cpp	/^        __kernel_ipc_pid_t msg_lrpid;   \/* last receive pid *\/$/;"	m	struct:msqid_ds	file:
+msg_lspid	src/syscall_desc.cpp	/^        __kernel_ipc_pid_t msg_lspid;   \/* pid of last msgsnd *\/$/;"	m	struct:msqid_ds	file:
+msg_msg	src/syscall_desc.cpp	/^struct msg_msg {$/;"	s	file:
+msg_msgseg	src/syscall_desc.cpp	/^struct msg_msgseg {$/;"	s	file:
+msg_name	src/syscall_desc.cpp	/^        void    *       msg_name;       \/* Socket name                  *\/$/;"	m	struct:msghdr	file:
+msg_name	tools/libdft-dta.cpp	/^        void    *       msg_name;       \/* Socket name                  *\/$/;"	m	struct:msghdr	file:
+msg_namelen	src/syscall_desc.cpp	/^        int             msg_namelen;    \/* Length of name               *\/$/;"	m	struct:msghdr	file:
+msg_namelen	tools/libdft-dta.cpp	/^        int             msg_namelen;    \/* Length of name               *\/$/;"	m	struct:msghdr	file:
+msg_perm	src/syscall_desc.cpp	/^        struct ipc_perm msg_perm;$/;"	m	struct:msqid_ds	typeref:struct:msqid_ds::ipc_perm	file:
+msg_qbytes	src/syscall_desc.cpp	/^        unsigned short msg_qbytes;      \/* max number of bytes on queue *\/$/;"	m	struct:msqid_ds	file:
+msg_qnum	src/syscall_desc.cpp	/^        unsigned short msg_qnum;        \/* number of messages in queue *\/$/;"	m	struct:msqid_ds	file:
+msg_queue	src/syscall_desc.cpp	/^struct msg_queue {$/;"	s	file:
+msg_rtime	src/syscall_desc.cpp	/^        __kernel_time_t msg_rtime;      \/* last msgrcv time *\/$/;"	m	struct:msqid_ds	file:
+msg_stime	src/syscall_desc.cpp	/^        __kernel_time_t msg_stime;      \/* last msgsnd time *\/$/;"	m	struct:msqid_ds	file:
+msgbuf	src/syscall_desc.cpp	/^struct msgbuf {$/;"	s	file:
+msghdr	src/syscall_desc.cpp	/^struct msghdr {$/;"	s	file:
+msghdr	tools/libdft-dta.cpp	/^struct msghdr {$/;"	s	file:
+msginfo	src/syscall_desc.cpp	/^struct msginfo {$/;"	s	file:
+msgmap	src/syscall_desc.cpp	/^        int msgmap;$/;"	m	struct:msginfo	file:
+msgmax	src/syscall_desc.cpp	/^        int msgmax;$/;"	m	struct:msginfo	file:
+msgmnb	src/syscall_desc.cpp	/^        int msgmnb;$/;"	m	struct:msginfo	file:
+msgmni	src/syscall_desc.cpp	/^        int msgmni;$/;"	m	struct:msginfo	file:
+msgpool	src/syscall_desc.cpp	/^        int msgpool;$/;"	m	struct:msginfo	file:
+msgseg	src/syscall_desc.cpp	/^        unsigned short  msgseg;$/;"	m	struct:msginfo	file:
+msgssz	src/syscall_desc.cpp	/^        int msgssz;$/;"	m	struct:msginfo	file:
+msgtql	src/syscall_desc.cpp	/^        int msgtql;$/;"	m	struct:msginfo	file:
+msqid_ds	src/syscall_desc.cpp	/^struct msqid_ds {$/;"	s	file:
+mtext	src/syscall_desc.cpp	/^        char mtext[1];      \/* message text *\/$/;"	m	struct:msgbuf	file:
+mtype	src/syscall_desc.cpp	/^        long mtype;         \/* type of message *\/$/;"	m	struct:msgbuf	file:
+name	src/syscall_desc.cpp	/^        int __user *name;$/;"	m	struct:__sysctl_args	file:
+nargs	src/syscall_desc.h	/^	size_t	nargs;				\/* number of arguments *\/$/;"	m	struct:__anon10
+new_utsname	src/syscall_desc.cpp	/^struct new_utsname {$/;"	s	file:
+newlen	src/syscall_desc.cpp	/^        size_t newlen;$/;"	m	struct:__sysctl_args	file:
+newval	src/syscall_desc.cpp	/^        void __user *newval;$/;"	m	struct:__sysctl_args	file:
+next	src/syscall_desc.cpp	/^        struct list_head *next, *prev;$/;"	m	struct:list_head	typeref:struct:list_head::list_head	file:
+next	src/syscall_desc.cpp	/^        struct msg_msgseg* next;$/;"	m	struct:msg_msg	typeref:struct:msg_msg::msg_msgseg	file:
+next	src/syscall_desc.cpp	/^        struct msg_msgseg* next;$/;"	m	struct:msg_msgseg	typeref:struct:msg_msgseg::msg_msgseg	file:
+next	src/syscall_desc.h	/^        struct sem_queue *      next;    \/* next entry in the queue *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::sem_queue
+nlen	src/syscall_desc.cpp	/^        int nlen;$/;"	m	struct:__sysctl_args	file:
+nodename	src/syscall_desc.cpp	/^        char nodename[65];$/;"	m	struct:new_utsname	file:
+nodename	src/syscall_desc.cpp	/^        char nodename[9];$/;"	m	struct:oldold_utsname	file:
+nr	src/libdft_api.h	/^	int 	nr;			\/* syscall number *\/$/;"	m	struct:__anon4
+nsops	src/syscall_desc.h	/^        int                     nsops;   \/* number of operations *\/$/;"	m	struct:sem_queue
+obj	src/syscall_desc.cpp	/^        unsigned __int64            obj;            \/* what iocb this event came from *\/$/;"	m	struct:io_event	file:
+offset	src/syscall_desc.cpp	/^        long offset;            \/* time offset (usec) *\/$/;"	m	struct:timex	file:
+old_gid_t	src/syscall_desc.cpp	/^typedef __kernel_old_gid_t      old_gid_t;$/;"	t	file:
+old_linux_dirent	src/syscall_desc.h	/^struct old_linux_dirent {$/;"	s
+old_sigset_t	src/syscall_desc.h	/^typedef unsigned long old_sigset_t;$/;"	t
+old_uid_t	src/syscall_desc.cpp	/^typedef __kernel_old_uid_t      old_uid_t;$/;"	t	file:
+oldlenp	src/syscall_desc.cpp	/^        size_t __user *oldlenp;$/;"	m	struct:__sysctl_args	file:
+oldold_utsname	src/syscall_desc.cpp	/^struct oldold_utsname {$/;"	s	file:
+oldval	src/syscall_desc.cpp	/^        void __user *oldval;$/;"	m	struct:__sysctl_args	file:
+orig_eax	src/syscall_desc.cpp	/^        long orig_eax;$/;"	m	struct:vm86_regs	file:
+pad	src/syscall_desc.cpp	/^        unsigned short pad;             \/* explicit padding for m68k *\/$/;"	m	struct:sysinfo	file:
+permitted	src/syscall_desc.h	/^	unsigned int permitted;$/;"	m	struct:__user_cap_data_struct
+pid	src/syscall_desc.h	/^	int pid;$/;"	m	struct:__user_cap_header_struct
+pid	src/syscall_desc.h	/^        int                     pid;     \/* process id of requesting process *\/$/;"	m	struct:sem_queue
+pid_t	src/syscall_desc.cpp	/^typedef __kernel_pid_t          pid_t;$/;"	t	file:
+pollfd	src/syscall_desc.cpp	/^struct pollfd {$/;"	s	file:
+post	src/libdft_api.h	/^	void	(* post)(INS ins);	\/* post-ins instrumentation callback *\/$/;"	m	struct:__anon6
+post	src/syscall_desc.h	/^	void 	(* post)(syscall_ctx_t*);	\/* post-syscall callback *\/$/;"	m	struct:__anon10
+post__sysctl_hook	src/syscall_desc.cpp	/^post__sysctl_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_close_hook	tools/libdft-dta.cpp	/^post_close_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_dup_hook	tools/libdft-dta.cpp	/^post_dup_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_epoll_wait_hook	src/syscall_desc.cpp	/^post_epoll_wait_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_fcntl_hook	src/syscall_desc.cpp	/^post_fcntl_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_get_mempolicy_hook	src/syscall_desc.cpp	/^post_get_mempolicy_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_getcwd_hook	src/syscall_desc.cpp	/^post_getcwd_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_getdents_hook	src/syscall_desc.cpp	/^post_getdents_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_getgroups16_hook	src/syscall_desc.cpp	/^post_getgroups16_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_getgroups_hook	src/syscall_desc.cpp	/^post_getgroups_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_getxattr_hook	src/syscall_desc.cpp	/^post_getxattr_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_io_getevents_hook	src/syscall_desc.cpp	/^post_io_getevents_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_ipc_hook	src/syscall_desc.cpp	/^post_ipc_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_listxattr_hook	src/syscall_desc.cpp	/^post_listxattr_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_lookup_dcookie_hook	src/syscall_desc.cpp	/^post_lookup_dcookie_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_mincore_hook	src/syscall_desc.cpp	/^post_mincore_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_mmap_hook	src/syscall_desc.cpp	/^post_mmap_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_modify_ldt_hook	src/syscall_desc.cpp	/^post_modify_ldt_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_mq_timedreceive_hook	src/syscall_desc.cpp	/^post_mq_timedreceive_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_open_hook	tools/libdft-dta.cpp	/^post_open_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_poll_hook	src/syscall_desc.cpp	/^post_poll_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_quotactl_hook	src/syscall_desc.cpp	/^post_quotactl_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_read_hook	src/syscall_desc.cpp	/^post_read_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_read_hook	tools/libdft-dta.cpp	/^post_read_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_readlinkat_hook	src/syscall_desc.cpp	/^post_readlinkat_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_readv_hook	src/syscall_desc.cpp	/^post_readv_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_readv_hook	tools/libdft-dta.cpp	/^post_readv_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_recvmmsg_hook	src/syscall_desc.cpp	/^post_recvmmsg_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_rt_sigpending_hook	src/syscall_desc.cpp	/^post_rt_sigpending_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_socketcall_hook	src/syscall_desc.cpp	/^post_socketcall_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_socketcall_hook	tools/libdft-dta.cpp	/^post_socketcall_hook(syscall_ctx_t *ctx)$/;"	f	file:
+post_syslog_hook	src/syscall_desc.cpp	/^post_syslog_hook(syscall_ctx_t *ctx)$/;"	f	file:
+ppsfreq	src/syscall_desc.cpp	/^        long ppsfreq;           \/* pps frequency (scaled ppm) (ro) *\/$/;"	m	struct:timex	file:
+pre	src/libdft_api.h	/^	void	(* pre)(INS ins);	\/* pre-ins instrumentation callback *\/$/;"	m	struct:__anon6
+pre	src/syscall_desc.h	/^	void	(* pre)(syscall_ctx_t*);	\/* pre-syscall callback *\/$/;"	m	struct:__anon10
+precision	src/syscall_desc.cpp	/^        long precision;         \/* clock precision (usec) (read only) *\/$/;"	m	struct:timex	file:
+prev	src/syscall_desc.cpp	/^        struct list_head *next, *prev;$/;"	m	struct:list_head	typeref:struct:list_head::	file:
+prev	src/syscall_desc.h	/^        struct sem_queue **     prev;    \/* previous entry in the queue, *(q->prev) == q *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::sem_queue
+proc_next	src/syscall_desc.h	/^        struct sem_undo *       proc_next;      \/* next entry on this process *\/$/;"	m	struct:sem_undo	typeref:struct:sem_undo::sem_undo
+procs	src/syscall_desc.cpp	/^        unsigned short procs;           \/* Number of current processes *\/$/;"	m	struct:sysinfo	file:
+q_cbytes	src/syscall_desc.cpp	/^        unsigned long q_cbytes;         \/* current number of bytes on queue *\/$/;"	m	struct:msg_queue	file:
+q_ctime	src/syscall_desc.cpp	/^        time_t q_ctime;                 \/* last change time *\/$/;"	m	struct:msg_queue	file:
+q_lrpid	src/syscall_desc.cpp	/^        pid_t q_lrpid;                  \/* last receive pid *\/$/;"	m	struct:msg_queue	file:
+q_lspid	src/syscall_desc.cpp	/^        pid_t q_lspid;                  \/* pid of last msgsnd *\/$/;"	m	struct:msg_queue	file:
+q_messages	src/syscall_desc.cpp	/^        struct list_head q_messages;$/;"	m	struct:msg_queue	typeref:struct:msg_queue::list_head	file:
+q_perm	src/syscall_desc.cpp	/^        struct kern_ipc_perm q_perm;$/;"	m	struct:msg_queue	typeref:struct:msg_queue::kern_ipc_perm	file:
+q_qbytes	src/syscall_desc.cpp	/^        unsigned long q_qbytes;         \/* max number of bytes on queue *\/$/;"	m	struct:msg_queue	file:
+q_qnum	src/syscall_desc.cpp	/^        unsigned long q_qnum;           \/* number of messages in queue *\/$/;"	m	struct:msg_queue	file:
+q_receivers	src/syscall_desc.cpp	/^        struct list_head q_receivers;$/;"	m	struct:msg_queue	typeref:struct:msg_queue::list_head	file:
+q_rtime	src/syscall_desc.cpp	/^        time_t q_rtime;                 \/* last msgrcv time *\/$/;"	m	struct:msg_queue	file:
+q_senders	src/syscall_desc.cpp	/^        struct list_head q_senders;$/;"	m	struct:msg_queue	typeref:struct:msg_queue::list_head	file:
+q_stime	src/syscall_desc.cpp	/^        time_t q_stime;                 \/* last msgsnd time *\/$/;"	m	struct:msg_queue	file:
+qfs_ino	src/syscall_desc.h	/^	unsigned __int64 qfs_ino;$/;"	m	struct:fs_qfilestat
+qfs_nblks	src/syscall_desc.h	/^	unsigned __int64 qfs_nblks;$/;"	m	struct:fs_qfilestat
+qfs_nextents	src/syscall_desc.h	/^	unsigned int qfs_nextents;$/;"	m	struct:fs_qfilestat
+qs_btimelimit	src/syscall_desc.h	/^	signed int		qs_btimelimit;$/;"	m	struct:fs_quota_stat
+qs_bwarnlimit	src/syscall_desc.h	/^	unsigned short		qs_bwarnlimit;$/;"	m	struct:fs_quota_stat
+qs_flag	src/syscall_desc.h	/^	unsigned short		qs_flag;$/;"	m	struct:fs_quota_stat
+qs_gquota	src/syscall_desc.h	/^	fs_qfilestat_t	qs_gquota;$/;"	m	struct:fs_quota_stat
+qs_incoredqs	src/syscall_desc.h	/^	unsigned int		qs_incoredqs;$/;"	m	struct:fs_quota_stat
+qs_itimelimit	src/syscall_desc.h	/^	signed int		qs_itimelimit;$/;"	m	struct:fs_quota_stat
+qs_iwarnlimit	src/syscall_desc.h	/^	unsigned short		qs_iwarnlimit;$/;"	m	struct:fs_quota_stat
+qs_pad	src/syscall_desc.h	/^	signed char		qs_pad;$/;"	m	struct:fs_quota_stat
+qs_rtbtimelimit	src/syscall_desc.h	/^	signed int		qs_rtbtimelimit;$/;"	m	struct:fs_quota_stat
+qs_uquota	src/syscall_desc.h	/^	fs_qfilestat_t	qs_uquota;$/;"	m	struct:fs_quota_stat
+qs_version	src/syscall_desc.h	/^	signed char		qs_version;$/;"	m	struct:fs_quota_stat
+r2m_binary_opb_l	src/libdft_core.cpp	/^r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_binary_opb_u	src/libdft_core.cpp	/^r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_binary_opl	src/libdft_core.cpp	/^r2m_binary_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_binary_opw	src/libdft_core.cpp	/^r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_save_opl	src/libdft_core.cpp	/^r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)$/;"	f	file:
+r2m_save_opw	src/libdft_core.cpp	/^r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst)$/;"	f	file:
+r2m_xfer_opb_l	src/libdft_core.cpp	/^r2m_xfer_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_xfer_opb_u	src/libdft_core.cpp	/^r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_xfer_opbn	src/libdft_core.cpp	/^r2m_xfer_opbn(thread_ctx_t *thread_ctx,$/;"	f	file:
+r2m_xfer_opl	src/libdft_core.cpp	/^r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_xfer_opln	src/libdft_core.cpp	/^r2m_xfer_opln(thread_ctx_t *thread_ctx,$/;"	f	file:
+r2m_xfer_opw	src/libdft_core.cpp	/^r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)$/;"	f	file:
+r2m_xfer_opwn	src/libdft_core.cpp	/^r2m_xfer_opwn(thread_ctx_t *thread_ctx,$/;"	f	file:
+r2r_binary_opb_l	src/libdft_core.cpp	/^r2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_binary_opb_lu	src/libdft_core.cpp	/^r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_binary_opb_u	src/libdft_core.cpp	/^r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_binary_opb_ul	src/libdft_core.cpp	/^r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_binary_opl	src/libdft_core.cpp	/^r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_binary_opw	src/libdft_core.cpp	/^r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_ternary_opb_l	src/libdft_core.cpp	/^r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src)$/;"	f	file:
+r2r_ternary_opb_u	src/libdft_core.cpp	/^r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src)$/;"	f	file:
+r2r_ternary_opl	src/libdft_core.cpp	/^r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src)$/;"	f	file:
+r2r_ternary_opw	src/libdft_core.cpp	/^r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)$/;"	f	file:
+r2r_xfer_opb_l	src/libdft_core.cpp	/^r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_xfer_opb_lu	src/libdft_core.cpp	/^r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_xfer_opb_u	src/libdft_core.cpp	/^r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_xfer_opb_ul	src/libdft_core.cpp	/^r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_xfer_opl	src/libdft_core.cpp	/^r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r2r_xfer_opw	src/libdft_core.cpp	/^r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)$/;"	f	file:
+r_clrb_l	src/libdft_core.cpp	/^r_clrb_l(thread_ctx_t *thread_ctx, uint32_t reg)$/;"	f	file:
+r_clrb_u	src/libdft_core.cpp	/^r_clrb_u(thread_ctx_t *thread_ctx, uint32_t reg)$/;"	f	file:
+r_clrl	src/libdft_core.cpp	/^r_clrl(thread_ctx_t *thread_ctx, uint32_t reg)$/;"	f	file:
+r_clrl2	src/libdft_core.cpp	/^r_clrl2(thread_ctx_t *thread_ctx)$/;"	f	file:
+r_clrl4	src/libdft_core.cpp	/^r_clrl4(thread_ctx_t *thread_ctx)$/;"	f	file:
+r_clrw	src/libdft_core.cpp	/^r_clrw(thread_ctx_t *thread_ctx, uint32_t reg)$/;"	f	file:
+raw_lock	src/syscall_desc.h	/^        raw_spinlock_t raw_lock;$/;"	m	struct:__anon9
+raw_spinlock_t	src/syscall_desc.h	/^} raw_spinlock_t;$/;"	t	typeref:struct:__anon8
+read_exec_only	src/syscall_desc.cpp	/^        unsigned int  read_exec_only:1;$/;"	m	struct:user_desc	file:
+regs	src/syscall_desc.cpp	/^        struct vm86_regs regs;$/;"	m	struct:vm86_struct	typeref:struct:vm86_struct::vm86_regs	file:
+regs	src/syscall_desc.cpp	/^        struct vm86_regs regs;$/;"	m	struct:vm86plus_struct	typeref:struct:vm86plus_struct::vm86_regs	file:
+release	src/syscall_desc.cpp	/^        char release[65];$/;"	m	struct:new_utsname	file:
+release	src/syscall_desc.cpp	/^        char release[9];$/;"	m	struct:oldold_utsname	file:
+rep_predicate	src/libdft_core.cpp	/^rep_predicate(BOOL first_iteration)$/;"	f	file:
+res	src/syscall_desc.cpp	/^        signed __int64            res;            \/* result code for this event *\/$/;"	m	struct:io_event	file:
+res2	src/syscall_desc.cpp	/^        signed __int64            res2;           \/* secondary result *\/$/;"	m	struct:io_event	file:
+reserved	src/syscall_desc.cpp	/^        long    reserved[4];  \/* ignored for input, zeroed for output *\/$/;"	m	struct:mq_attr	file:
+ret	src/libdft_api.h	/^	ADDRINT ret;			\/* return value *\/$/;"	m	struct:__anon4
+retval_args	src/syscall_desc.h	/^	size_t	retval_args;		\/* flag; returns value in arguments *\/$/;"	m	struct:__anon10
+revectored_struct	src/syscall_desc.cpp	/^struct revectored_struct {$/;"	s	file:
+revents	src/syscall_desc.cpp	/^        short revents;$/;"	m	struct:pollfd	file:
+rlim_cur	src/syscall_desc.cpp	/^        unsigned long   rlim_cur;$/;"	m	struct:rlimit	file:
+rlim_max	src/syscall_desc.cpp	/^        unsigned long   rlim_max;$/;"	m	struct:rlimit	file:
+rlimit	src/syscall_desc.cpp	/^struct rlimit {$/;"	s	file:
+ru_idrss	src/syscall_desc.cpp	/^        long    ru_idrss;               \/* integral unshared data size *\/$/;"	m	struct:rusage	file:
+ru_inblock	src/syscall_desc.cpp	/^        long    ru_inblock;             \/* block input operations *\/$/;"	m	struct:rusage	file:
+ru_isrss	src/syscall_desc.cpp	/^        long    ru_isrss;               \/* integral unshared stack size *\/$/;"	m	struct:rusage	file:
+ru_ixrss	src/syscall_desc.cpp	/^        long    ru_ixrss;               \/* integral shared memory size *\/$/;"	m	struct:rusage	file:
+ru_majflt	src/syscall_desc.cpp	/^        long    ru_majflt;              \/* page faults *\/$/;"	m	struct:rusage	file:
+ru_maxrss	src/syscall_desc.cpp	/^        long    ru_maxrss;              \/* maximum resident set size *\/$/;"	m	struct:rusage	file:
+ru_minflt	src/syscall_desc.cpp	/^        long    ru_minflt;              \/* page reclaims *\/$/;"	m	struct:rusage	file:
+ru_msgrcv	src/syscall_desc.cpp	/^        long    ru_msgrcv;              \/* messages received *\/$/;"	m	struct:rusage	file:
+ru_msgsnd	src/syscall_desc.cpp	/^        long    ru_msgsnd;              \/* messages sent *\/$/;"	m	struct:rusage	file:
+ru_nivcsw	src/syscall_desc.cpp	/^        long    ru_nivcsw;              \/* involuntary " *\/$/;"	m	struct:rusage	file:
+ru_nsignals	src/syscall_desc.cpp	/^        long    ru_nsignals;            \/* signals received *\/$/;"	m	struct:rusage	file:
+ru_nswap	src/syscall_desc.cpp	/^        long    ru_nswap;               \/* swaps *\/$/;"	m	struct:rusage	file:
+ru_nvcsw	src/syscall_desc.cpp	/^        long    ru_nvcsw;               \/* voluntary context switches *\/$/;"	m	struct:rusage	file:
+ru_oublock	src/syscall_desc.cpp	/^        long    ru_oublock;             \/* block output operations *\/$/;"	m	struct:rusage	file:
+ru_stime	src/syscall_desc.cpp	/^        struct timeval ru_stime;        \/* system time used *\/$/;"	m	struct:rusage	typeref:struct:rusage::timeval	file:
+ru_utime	src/syscall_desc.cpp	/^        struct timeval ru_utime;        \/* user time used *\/$/;"	m	struct:rusage	typeref:struct:rusage::timeval	file:
+rusage	src/syscall_desc.cpp	/^struct  rusage {$/;"	s	file:
+sa_flags	src/syscall_desc.cpp	/^        unsigned long sa_flags;$/;"	m	struct:sigaction	file:
+sa_handler	src/syscall_desc.cpp	/^        __sighandler_t sa_handler;$/;"	m	struct:sigaction	file:
+sa_mask	src/syscall_desc.cpp	/^        sigset_t sa_mask;               \/* mask last for extensibility *\/$/;"	m	struct:sigaction	file:
+sa_restorer	src/syscall_desc.cpp	/^        __sigrestore_t sa_restorer;$/;"	m	struct:sigaction	file:
+save_args	src/syscall_desc.h	/^	size_t	save_args;			\/* flag; save arguments *\/$/;"	m	struct:__anon10
+sched_param	src/syscall_desc.cpp	/^struct sched_param {$/;"	s	file:
+sched_priority	src/syscall_desc.cpp	/^        int sched_priority;$/;"	m	struct:sched_param	file:
+screen_bitmap	src/syscall_desc.cpp	/^        unsigned long screen_bitmap;$/;"	m	struct:vm86_struct	file:
+screen_bitmap	src/syscall_desc.cpp	/^        unsigned long screen_bitmap;$/;"	m	struct:vm86plus_struct	file:
+security	src/syscall_desc.cpp	/^        void *security;$/;"	m	struct:msg_msg	file:
+security	src/syscall_desc.h	/^        void            *security;$/;"	m	struct:kern_ipc_perm
+seg_32bit	src/syscall_desc.cpp	/^        unsigned int  seg_32bit:1;$/;"	m	struct:user_desc	file:
+seg_not_present	src/syscall_desc.cpp	/^        unsigned int  seg_not_present:1;$/;"	m	struct:user_desc	file:
+sem	src/syscall_desc.h	/^struct sem {$/;"	s
+sem_array	src/syscall_desc.h	/^struct sem_array {$/;"	s
+sem_base	src/syscall_desc.h	/^        struct sem              *sem_base;      \/* ptr to first semaphore in array *\/$/;"	m	struct:sem_array	typeref:struct:sem_array::sem
+sem_base	src/syscall_desc.h	/^        struct sem      *sem_base;              \/* ptr to first semaphore in array *\/$/;"	m	struct:semid_ds	typeref:struct:semid_ds::sem
+sem_ctime	src/syscall_desc.h	/^        long sem_ctime;              \/* last change time *\/$/;"	m	struct:semid_ds
+sem_ctime	src/syscall_desc.h	/^        time_t                  sem_ctime;      \/* last change time *\/$/;"	m	struct:sem_array
+sem_flg	src/syscall_desc.h	/^        short           sem_flg;        \/* operation flags *\/$/;"	m	struct:sembuf
+sem_nsems	src/syscall_desc.h	/^        unsigned long           sem_nsems;      \/* no. of semaphores in array *\/$/;"	m	struct:sem_array
+sem_nsems	src/syscall_desc.h	/^        unsigned short  sem_nsems;              \/* no. of semaphores in array *\/$/;"	m	struct:semid_ds
+sem_num	src/syscall_desc.h	/^        unsigned short  sem_num;        \/* semaphore index in array *\/$/;"	m	struct:sembuf
+sem_op	src/syscall_desc.h	/^        short           sem_op;         \/* semaphore operation *\/$/;"	m	struct:sembuf
+sem_otime	src/syscall_desc.h	/^        long sem_otime;              \/* last semop time *\/$/;"	m	struct:semid_ds
+sem_otime	src/syscall_desc.h	/^        time_t                  sem_otime;      \/* last semop time *\/$/;"	m	struct:sem_array
+sem_pending	src/syscall_desc.h	/^        struct sem_queue        *sem_pending;   \/* pending operations to be processed *\/$/;"	m	struct:sem_array	typeref:struct:sem_array::sem_queue
+sem_pending	src/syscall_desc.h	/^        struct sem_queue *sem_pending;          \/* pending operations to be processed *\/$/;"	m	struct:semid_ds	typeref:struct:semid_ds::sem_queue
+sem_pending_last	src/syscall_desc.h	/^        struct sem_queue        **sem_pending_last; \/* last pending operation *\/$/;"	m	struct:sem_array	typeref:struct:sem_array::sem_queue
+sem_pending_last	src/syscall_desc.h	/^        struct sem_queue **sem_pending_last;    \/* last pending operation *\/$/;"	m	struct:semid_ds	typeref:struct:semid_ds::sem_queue
+sem_perm	src/syscall_desc.h	/^        struct ipc_perm sem_perm;               \/* permissions .. see ipc.h *\/$/;"	m	struct:semid_ds	typeref:struct:semid_ds::ipc_perm
+sem_perm	src/syscall_desc.h	/^        struct kern_ipc_perm    sem_perm;       \/* permissions .. see ipc.h *\/$/;"	m	struct:sem_array	typeref:struct:sem_array::kern_ipc_perm
+sem_queue	src/syscall_desc.h	/^struct sem_queue {$/;"	s
+sem_undo	src/syscall_desc.h	/^struct sem_undo {$/;"	s
+semadj	src/syscall_desc.h	/^        short *                 semadj;         \/* array of adjustments, one per semaphore *\/$/;"	m	struct:sem_undo
+semaem	src/syscall_desc.cpp	/^        int semaem;$/;"	m	struct:seminfo	file:
+sembuf	src/syscall_desc.h	/^struct sembuf {$/;"	s
+semid	src/syscall_desc.h	/^        int                     semid;          \/* semaphore set identifier *\/$/;"	m	struct:sem_undo
+semid_ds	src/syscall_desc.h	/^struct semid_ds {$/;"	s
+seminfo	src/syscall_desc.cpp	/^struct  seminfo {$/;"	s	file:
+semmap	src/syscall_desc.cpp	/^        int semmap;$/;"	m	struct:seminfo	file:
+semmni	src/syscall_desc.cpp	/^        int semmni;$/;"	m	struct:seminfo	file:
+semmns	src/syscall_desc.cpp	/^        int semmns;$/;"	m	struct:seminfo	file:
+semmnu	src/syscall_desc.cpp	/^        int semmnu;$/;"	m	struct:seminfo	file:
+semmsl	src/syscall_desc.cpp	/^        int semmsl;$/;"	m	struct:seminfo	file:
+semopm	src/syscall_desc.cpp	/^        int semopm;$/;"	m	struct:seminfo	file:
+sempid	src/syscall_desc.h	/^        int     sempid;         \/* pid of last operation *\/$/;"	m	struct:sem
+semume	src/syscall_desc.cpp	/^        int semume;$/;"	m	struct:seminfo	file:
+semun	src/syscall_desc.h	/^union semun {$/;"	u
+semusz	src/syscall_desc.cpp	/^        int semusz;$/;"	m	struct:seminfo	file:
+semval	src/syscall_desc.h	/^        int     semval;         \/* current value *\/$/;"	m	struct:sem
+semvmx	src/syscall_desc.cpp	/^        int semvmx;$/;"	m	struct:seminfo	file:
+seq	src/syscall_desc.h	/^        unsigned long   seq;$/;"	m	struct:kern_ipc_perm
+sharedram	src/syscall_desc.cpp	/^        unsigned long sharedram;        \/* Amount of shared memory *\/$/;"	m	struct:sysinfo	file:
+shift	src/syscall_desc.cpp	/^        int shift;              \/* interval duration (s) (shift) (ro) *\/$/;"	m	struct:timex	file:
+shm_atime	src/syscall_desc.cpp	/^        __kernel_time_t         shm_atime;      \/* last attach time *\/$/;"	m	struct:shmid_ds	file:
+shm_cpid	src/syscall_desc.cpp	/^        __kernel_ipc_pid_t      shm_cpid;       \/* pid of creator *\/$/;"	m	struct:shmid_ds	file:
+shm_ctime	src/syscall_desc.cpp	/^        __kernel_time_t         shm_ctime;      \/* last change time *\/$/;"	m	struct:shmid_ds	file:
+shm_dtime	src/syscall_desc.cpp	/^        __kernel_time_t         shm_dtime;      \/* last detach time *\/$/;"	m	struct:shmid_ds	file:
+shm_info	src/syscall_desc.cpp	/^struct shm_info {$/;"	s	file:
+shm_lpid	src/syscall_desc.cpp	/^        __kernel_ipc_pid_t      shm_lpid;       \/* pid of last operator *\/$/;"	m	struct:shmid_ds	file:
+shm_nattch	src/syscall_desc.cpp	/^        unsigned short          shm_nattch;     \/* no. of current attaches *\/$/;"	m	struct:shmid_ds	file:
+shm_perm	src/syscall_desc.cpp	/^        struct ipc_perm         shm_perm;       \/* operation perms *\/$/;"	m	struct:shmid_ds	typeref:struct:shmid_ds::ipc_perm	file:
+shm_rss	src/syscall_desc.cpp	/^        unsigned long shm_rss;  \/* total resident shm *\/$/;"	m	struct:shm_info	file:
+shm_segsz	src/syscall_desc.cpp	/^        int                     shm_segsz;      \/* size of segment (bytes) *\/$/;"	m	struct:shmid_ds	file:
+shm_swp	src/syscall_desc.cpp	/^        unsigned long shm_swp;  \/* total swapped shm *\/$/;"	m	struct:shm_info	file:
+shm_tot	src/syscall_desc.cpp	/^        unsigned long shm_tot;  \/* total allocated shm *\/$/;"	m	struct:shm_info	file:
+shm_unused	src/syscall_desc.cpp	/^        unsigned short          shm_unused;     \/* compatibility *\/$/;"	m	struct:shmid_ds	file:
+shm_unused2	src/syscall_desc.cpp	/^        void                    *shm_unused2;   \/* ditto - used by DIPC *\/$/;"	m	struct:shmid_ds	file:
+shm_unused3	src/syscall_desc.cpp	/^        void                    *shm_unused3;   \/* unused *\/$/;"	m	struct:shmid_ds	file:
+shmall	src/syscall_desc.cpp	/^        int shmall;$/;"	m	struct:shminfo	file:
+shmid_ds	src/syscall_desc.cpp	/^struct shmid_ds {$/;"	s	file:
+shminfo	src/syscall_desc.cpp	/^struct  shminfo {$/;"	s	file:
+shmmax	src/syscall_desc.cpp	/^        int shmmax;$/;"	m	struct:shminfo	file:
+shmmin	src/syscall_desc.cpp	/^        int shmmin;$/;"	m	struct:shminfo	file:
+shmmni	src/syscall_desc.cpp	/^        int shmmni;$/;"	m	struct:shminfo	file:
+shmseg	src/syscall_desc.cpp	/^        int shmseg;$/;"	m	struct:shminfo	file:
+si_code	src/syscall_desc.cpp	/^        int si_code;$/;"	m	struct:siginfo	file:
+si_errno	src/syscall_desc.cpp	/^        int si_errno;$/;"	m	struct:siginfo	file:
+si_signo	src/syscall_desc.cpp	/^        int si_signo;$/;"	m	struct:siginfo	file:
+sigaction	src/syscall_desc.cpp	/^struct sigaction {$/;"	s	file:
+sigaltstack	src/syscall_desc.cpp	/^typedef struct sigaltstack {$/;"	s	file:
+siginfo	src/syscall_desc.cpp	/^typedef struct siginfo {$/;"	s	file:
+siginfo_t	src/syscall_desc.cpp	/^} siginfo_t;$/;"	t	typeref:struct:siginfo	file:
+sigset_t	src/syscall_desc.cpp	/^typedef unsigned long sigset_t;$/;"	t	file:
+sigval	src/syscall_desc.cpp	/^typedef union sigval {$/;"	u	file:
+sigval_t	src/syscall_desc.cpp	/^} sigval_t;$/;"	t	typeref:union:sigval	file:
+sival_int	src/syscall_desc.cpp	/^        int sival_int;$/;"	m	union:sigval	file:
+sival_ptr	src/syscall_desc.cpp	/^        void *sival_ptr;$/;"	m	union:sigval	file:
+sleeper	src/syscall_desc.h	/^        struct task_struct*     sleeper; \/* this process *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::task_struct
+sma	src/syscall_desc.h	/^        struct sem_array *      sma;     \/* semaphore array for operations *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::sem_array
+sops	src/syscall_desc.h	/^        struct sembuf *         sops;    \/* array of pending operations *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::sembuf
+spinlock_t	src/syscall_desc.h	/^} spinlock_t;$/;"	t	typeref:struct:__anon9
+ss	src/syscall_desc.cpp	/^        unsigned short ss, __ssh;$/;"	m	struct:vm86_regs	file:
+ss_flags	src/syscall_desc.cpp	/^        int ss_flags;$/;"	m	struct:sigaltstack	file:
+ss_size	src/syscall_desc.cpp	/^        size_t ss_size;$/;"	m	struct:sigaltstack	file:
+ss_sp	src/syscall_desc.cpp	/^        void __user *ss_sp;$/;"	m	struct:sigaltstack	file:
+st_atime	src/syscall_desc.cpp	/^        unsigned int  st_atime;$/;"	m	struct:__old_kernel_stat	file:
+st_atime	src/syscall_desc.cpp	/^        unsigned long   st_atime;$/;"	m	struct:stat64	file:
+st_atime_nsec	src/syscall_desc.cpp	/^        unsigned long   st_atime_nsec;$/;"	m	struct:stat64	file:
+st_blksize	src/syscall_desc.cpp	/^        unsigned long   st_blksize;$/;"	m	struct:stat64	file:
+st_blocks	src/syscall_desc.cpp	/^        unsigned long long      st_blocks;$/;"	m	struct:stat64	file:
+st_ctime	src/syscall_desc.cpp	/^        unsigned int  st_ctime;$/;"	m	struct:__old_kernel_stat	file:
+st_ctime	src/syscall_desc.cpp	/^        unsigned long   st_ctime;$/;"	m	struct:stat64	file:
+st_ctime_nsec	src/syscall_desc.cpp	/^        unsigned long   st_ctime_nsec;$/;"	m	struct:stat64	file:
+st_dev	src/syscall_desc.cpp	/^        unsigned long long      st_dev;$/;"	m	struct:stat64	file:
+st_dev	src/syscall_desc.cpp	/^        unsigned short st_dev;$/;"	m	struct:__old_kernel_stat	file:
+st_gid	src/syscall_desc.cpp	/^        unsigned long   st_gid;$/;"	m	struct:stat64	file:
+st_gid	src/syscall_desc.cpp	/^        unsigned short st_gid;$/;"	m	struct:__old_kernel_stat	file:
+st_ino	src/syscall_desc.cpp	/^        unsigned long long      st_ino;$/;"	m	struct:stat64	file:
+st_ino	src/syscall_desc.cpp	/^        unsigned short st_ino;$/;"	m	struct:__old_kernel_stat	file:
+st_mode	src/syscall_desc.cpp	/^        unsigned int    st_mode;$/;"	m	struct:stat64	file:
+st_mode	src/syscall_desc.cpp	/^        unsigned short st_mode;$/;"	m	struct:__old_kernel_stat	file:
+st_mtime	src/syscall_desc.cpp	/^        unsigned int  st_mtime;$/;"	m	struct:__old_kernel_stat	file:
+st_mtime	src/syscall_desc.cpp	/^        unsigned long   st_mtime;$/;"	m	struct:stat64	file:
+st_mtime_nsec	src/syscall_desc.cpp	/^        unsigned int    st_mtime_nsec;$/;"	m	struct:stat64	file:
+st_nlink	src/syscall_desc.cpp	/^        unsigned int    st_nlink;$/;"	m	struct:stat64	file:
+st_nlink	src/syscall_desc.cpp	/^        unsigned short st_nlink;$/;"	m	struct:__old_kernel_stat	file:
+st_rdev	src/syscall_desc.cpp	/^        unsigned long long      st_rdev;$/;"	m	struct:stat64	file:
+st_rdev	src/syscall_desc.cpp	/^        unsigned short st_rdev;$/;"	m	struct:__old_kernel_stat	file:
+st_size	src/syscall_desc.cpp	/^        long long       st_size;$/;"	m	struct:stat64	file:
+st_size	src/syscall_desc.cpp	/^        unsigned int  st_size;$/;"	m	struct:__old_kernel_stat	file:
+st_uid	src/syscall_desc.cpp	/^        unsigned long   st_uid;$/;"	m	struct:stat64	file:
+st_uid	src/syscall_desc.cpp	/^        unsigned short st_uid;$/;"	m	struct:__old_kernel_stat	file:
+stabil	src/syscall_desc.cpp	/^        long stabil;            \/* pps stability (scaled ppm) (ro) *\/$/;"	m	struct:timex	file:
+stack_t	src/syscall_desc.cpp	/^} stack_t;$/;"	t	typeref:struct:sigaltstack	file:
+stat64	src/syscall_desc.cpp	/^struct stat64 {$/;"	s	file:
+statfs	src/syscall_desc.cpp	/^struct statfs {$/;"	s	file:
+statfs64	src/syscall_desc.cpp	/^struct statfs64 {$/;"	s	file:
+status	src/syscall_desc.cpp	/^        int status;             \/* clock command\/status *\/$/;"	m	struct:timex	file:
+status	src/syscall_desc.h	/^        int                     status;  \/* completion status of operation *\/$/;"	m	struct:sem_queue
+stbcnt	src/syscall_desc.cpp	/^        long stbcnt;            \/* stability limit exceeded (ro) *\/$/;"	m	struct:timex	file:
+suseconds_t	src/syscall_desc.cpp	/^typedef __kernel_suseconds_t    suseconds_t;$/;"	t	file:
+swap_attempts	src/syscall_desc.cpp	/^        unsigned long swap_attempts;$/;"	m	struct:shm_info	file:
+swap_successes	src/syscall_desc.cpp	/^        unsigned long swap_successes;$/;"	m	struct:shm_info	file:
+syscall_clr_post	src/syscall_desc.cpp	/^syscall_clr_post(syscall_desc_t *desc)$/;"	f
+syscall_clr_pre	src/syscall_desc.cpp	/^syscall_clr_pre(syscall_desc_t *desc)$/;"	f
+syscall_ctx	src/libdft_api.h	/^	syscall_ctx_t	syscall_ctx;	\/* syscall context *\/$/;"	m	struct:__anon5
+syscall_ctx_t	src/libdft_api.h	/^} syscall_ctx_t;$/;"	t	typeref:struct:__anon4
+syscall_desc	src/syscall_desc.cpp	/^syscall_desc_t syscall_desc[SYSCALL_MAX] = {$/;"	v
+syscall_desc_t	src/syscall_desc.h	/^} syscall_desc_t;$/;"	t	typeref:struct:__anon10
+syscall_set_post	src/syscall_desc.cpp	/^syscall_set_post(syscall_desc_t *desc, void (* post)(syscall_ctx_t*))$/;"	f
+syscall_set_pre	src/syscall_desc.cpp	/^syscall_set_pre(syscall_desc_t *desc, void (* pre)(syscall_ctx_t*))$/;"	f
+sysenter_save	src/libdft_api.cpp	/^sysenter_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)$/;"	f	file:
+sysexit_save	src/libdft_api.cpp	/^sysexit_save(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)$/;"	f	file:
+sysinfo	src/syscall_desc.cpp	/^struct sysinfo {$/;"	s	file:
+sysname	src/syscall_desc.cpp	/^        char sysname[65];$/;"	m	struct:new_utsname	file:
+sysname	src/syscall_desc.cpp	/^        char sysname[9];$/;"	m	struct:oldold_utsname	file:
+tagmap_alloc	src/tagmap.cpp	/^tagmap_alloc(void)$/;"	f
+tagmap_clrb	src/tagmap.cpp	/^tagmap_clrb(size_t addr)$/;"	f
+tagmap_clrl	src/tagmap.cpp	/^tagmap_clrl(size_t addr)$/;"	f
+tagmap_clrn	src/tagmap.cpp	/^tagmap_clrn(size_t addr, size_t num)$/;"	f
+tagmap_clrq	src/tagmap.cpp	/^tagmap_clrq(size_t addr)$/;"	f
+tagmap_clrw	src/tagmap.cpp	/^tagmap_clrw(size_t addr)$/;"	f
+tagmap_free	src/tagmap.cpp	/^tagmap_free(void)$/;"	f
+tagmap_getb	src/tagmap.cpp	/^tagmap_getb(size_t addr)$/;"	f
+tagmap_getl	src/tagmap.cpp	/^tagmap_getl(size_t addr)$/;"	f
+tagmap_getq	src/tagmap.cpp	/^tagmap_getq(size_t addr)$/;"	f
+tagmap_getw	src/tagmap.cpp	/^tagmap_getw(size_t addr)$/;"	f
+tagmap_setb	src/tagmap.cpp	/^tagmap_setb(size_t addr)$/;"	f
+tagmap_setl	src/tagmap.cpp	/^tagmap_setl(size_t addr)$/;"	f
+tagmap_setn	src/tagmap.cpp	/^tagmap_setn(size_t addr, size_t num)$/;"	f
+tagmap_setq	src/tagmap.cpp	/^tagmap_setq(size_t addr)$/;"	f
+tagmap_setw	src/tagmap.cpp	/^tagmap_setw(size_t addr)$/;"	f
+tai	src/syscall_desc.cpp	/^        int tai;                \/* TAI offset (ro) *\/$/;"	m	struct:timex	file:
+thread_alloc	src/libdft_api.cpp	/^thread_alloc(THREADID tid, CONTEXT *ctx, INT32 flags, VOID *v)$/;"	f	file:
+thread_ctx_init	src/libdft_api.cpp	/^thread_ctx_init(void)$/;"	f	file:
+thread_ctx_ptr	src/libdft_api.cpp	/^REG thread_ctx_ptr;$/;"	v
+thread_ctx_t	src/libdft_api.h	/^} thread_ctx_t;$/;"	t	typeref:struct:__anon5
+thread_free	src/libdft_api.cpp	/^thread_free(THREADID tid, const CONTEXT *ctx, INT32 code, VOID *v)$/;"	f	file:
+tick	src/syscall_desc.cpp	/^        long tick;              \/* (modified) usecs between clock ticks *\/$/;"	m	struct:timex	file:
+time	src/syscall_desc.cpp	/^        struct timeval time;    \/* (read only) *\/$/;"	m	struct:timex	typeref:struct:timex::timeval	file:
+timer_t	src/syscall_desc.cpp	/^typedef __kernel_timer_t        timer_t;$/;"	t	file:
+timespec	src/syscall_desc.cpp	/^struct timespec {$/;"	s	file:
+timeval	src/syscall_desc.cpp	/^struct timeval {$/;"	s	file:
+timex	src/syscall_desc.cpp	/^struct timex {$/;"	s	file:
+timezone	src/syscall_desc.cpp	/^struct timezone {$/;"	s	file:
+tms	src/syscall_desc.cpp	/^struct tms {$/;"	s	file:
+tms_cstime	src/syscall_desc.cpp	/^        int tms_cstime;$/;"	m	struct:tms	file:
+tms_cutime	src/syscall_desc.cpp	/^        int tms_cutime;$/;"	m	struct:tms	file:
+tms_stime	src/syscall_desc.cpp	/^        int tms_stime;$/;"	m	struct:tms	file:
+tms_utime	src/syscall_desc.cpp	/^        int tms_utime;$/;"	m	struct:tms	file:
+tolerance	src/syscall_desc.cpp	/^        long tolerance;         \/* clock frequency tolerance (ppm)$/;"	m	struct:timex	file:
+totalhigh	src/syscall_desc.cpp	/^        unsigned long totalhigh;        \/* Total high memory size *\/$/;"	m	struct:sysinfo	file:
+totalram	src/syscall_desc.cpp	/^        unsigned long totalram;         \/* Total usable main memory size *\/$/;"	m	struct:sysinfo	file:
+totalswap	src/syscall_desc.cpp	/^        unsigned long totalswap;        \/* Total swap space size *\/$/;"	m	struct:sysinfo	file:
+trace_inspect	src/libdft_api.cpp	/^trace_inspect(TRACE trace, VOID *v)$/;"	f	file:
+trace_inspect	tools/nullpin.cpp	/^trace_inspect(TRACE trace, VOID *v)$/;"	f	file:
+tv_nsec	src/syscall_desc.cpp	/^        long    tv_nsec;        \/* nanoseconds *\/$/;"	m	struct:timespec	file:
+tv_sec	src/syscall_desc.cpp	/^        time_t          tv_sec;         \/* seconds *\/$/;"	m	struct:timeval	file:
+tv_sec	src/syscall_desc.cpp	/^        time_t  tv_sec;         \/* seconds *\/$/;"	m	struct:timespec	file:
+tv_usec	src/syscall_desc.cpp	/^        suseconds_t     tv_usec;        \/* microseconds *\/$/;"	m	struct:timeval	file:
+tz_dsttime	src/syscall_desc.cpp	/^        int     tz_dsttime;     \/* type of dst correction *\/$/;"	m	struct:timezone	file:
+tz_minuteswest	src/syscall_desc.cpp	/^        int     tz_minuteswest; \/* minutes west of Greenwich *\/$/;"	m	struct:timezone	file:
+uid	src/syscall_desc.h	/^        unsigned int           uid;$/;"	m	struct:kern_ipc_perm
+uid	src/syscall_desc.h	/^    unsigned int uid;                        \/* Owner's user ID.  *\/$/;"	m	struct:ipc_perm
+uid16_t	src/syscall_desc.cpp	/^typedef __kernel_uid16_t        uid16_t;$/;"	t	file:
+uid_t	src/syscall_desc.cpp	/^typedef __kernel_uid32_t        uid_t;$/;"	t	file:
+uint16_t	src/libdft_core.cpp	/^typedef unsigned short uint16_t;$/;"	t	file:
+uint16_t	src/tagmap.cpp	/^typedef unsigned short int               uint16_t;$/;"	t	file:
+uint32_t	src/libdft_core.cpp	/^typedef unsigned int uint32_t;$/;"	t	file:
+uint32_t	src/tagmap.cpp	/^typedef unsigned int                     uint32_t;$/;"	t	file:
+uint32_t	tools/libdft-dta.cpp	/^typedef unsigned int uint32_t;$/;"	t	file:
+uint64_t	src/tagmap.cpp	/^typedef unsigned __int64                uint64_t;$/;"	t	file:
+uint8_t	src/libdft_core.cpp	/^typedef unsigned char uint8_t;$/;"	t	file:
+uint8_t	src/tagmap.cpp	/^typedef unsigned char             uint8_t;$/;"	t	file:
+undo	src/syscall_desc.h	/^        struct sem_undo         *undo;          \/* undo requests on this array *\/$/;"	m	struct:sem_array	typeref:struct:sem_array::sem_undo
+undo	src/syscall_desc.h	/^        struct sem_undo *       undo;    \/* undo structure *\/$/;"	m	struct:sem_queue	typeref:struct:sem_queue::sem_undo
+undo	src/syscall_desc.h	/^        struct sem_undo *undo;                  \/* undo requests on this array *\/$/;"	m	struct:semid_ds	typeref:struct:semid_ds::sem_undo
+unlikely	src/branch_pred.h	41;"	d
+unused	src/syscall_desc.cpp	/^        unsigned long unused:28;$/;"	m	struct:vm86plus_info_struct	file:
+uptime	src/syscall_desc.cpp	/^        long uptime;                    \/* Seconds since boot *\/$/;"	m	struct:sysinfo	file:
+useable	src/syscall_desc.cpp	/^        unsigned int  useable:1;$/;"	m	struct:user_desc	file:
+used_ids	src/syscall_desc.cpp	/^        int used_ids;$/;"	m	struct:shm_info	file:
+user_desc	src/syscall_desc.cpp	/^struct user_desc {$/;"	s	file:
+ustat	src/syscall_desc.cpp	/^struct ustat {$/;"	s	file:
+uval	src/libdft_api.h	/^	void		*uval;		\/* local storage *\/$/;"	m	struct:__anon5
+val	src/syscall_desc.cpp	/^        int     val[2];$/;"	m	struct:__anon12	file:
+val	src/syscall_desc.h	/^	int		val;$/;"	m	union:semun
+vcpu	src/libdft_api.h	/^	vcpu_ctx_t	vcpu;		\/* VCPU context *\/$/;"	m	struct:__anon5
+vcpu_ctx_t	src/libdft_api.h	/^} vcpu_ctx_t;$/;"	t	typeref:struct:__anon3
+version	src/syscall_desc.cpp	/^        char version[65];$/;"	m	struct:new_utsname	file:
+version	src/syscall_desc.cpp	/^        char version[9];$/;"	m	struct:oldold_utsname	file:
+version	src/syscall_desc.h	/^	unsigned int version;$/;"	m	struct:__user_cap_header_struct
+vm86_regs	src/syscall_desc.cpp	/^struct vm86_regs {$/;"	s	file:
+vm86_struct	src/syscall_desc.cpp	/^struct vm86_struct {$/;"	s	file:
+vm86dbg_TFpendig	src/syscall_desc.cpp	/^        unsigned long vm86dbg_TFpendig:1;     \/* for debugger *\/$/;"	m	struct:vm86plus_info_struct	file:
+vm86dbg_active	src/syscall_desc.cpp	/^        unsigned long vm86dbg_active:1;       \/* for debugger *\/$/;"	m	struct:vm86plus_info_struct	file:
+vm86dbg_intxxtab	src/syscall_desc.cpp	/^        unsigned char vm86dbg_intxxtab[32];   \/* for debugger *\/$/;"	m	struct:vm86plus_info_struct	file:
+vm86plus	src/syscall_desc.cpp	/^        struct vm86plus_info_struct vm86plus;$/;"	m	struct:vm86plus_struct	typeref:struct:vm86plus_struct::vm86plus_info_struct	file:
+vm86plus_info_struct	src/syscall_desc.cpp	/^struct vm86plus_info_struct {$/;"	s	file:
+vm86plus_struct	src/syscall_desc.cpp	/^struct vm86plus_struct {$/;"	s	file:

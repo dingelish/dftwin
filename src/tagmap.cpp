@@ -51,6 +51,8 @@
 #define MAP_FLAGS	MAP_PRIVATE | MAP_ANONYMOUS
 #endif
 
+//#define MYDEBUG
+
 typedef signed char             int8_t;
 typedef short int               int16_t;
 typedef int                     int32_t;
@@ -59,6 +61,8 @@ typedef unsigned char             uint8_t;
 typedef unsigned short int               uint16_t;
 typedef unsigned int                     uint32_t;
 typedef unsigned __int64                uint64_t;
+
+extern FILE *inner_logfile;
 
 #define PROT_READ       0x1             /* Page can be read.  */
 #define PROT_WRITE      0x2             /* Page can be written.  */
@@ -71,6 +75,14 @@ typedef unsigned __int64                uint64_t;
 # define MAP_ANONYMOUS  0x20            /* Don't use a file.  */
 
 #define MAP_FAILED	((void *) -1)
+
+#ifdef MYDEBUG
+#define debugout(op, pos, len) \
+    fprintf(inner_logfile, "%s %08X %d\n", op, pos, len);
+#else
+#define debugout(op, pos, len)
+#endif
+
 
 /*
  * tagmap
@@ -103,7 +115,7 @@ tagmap_alloc(void)
 //						PROT_READ | PROT_WRITE,
 //						MAP_FLAGS,
 //						-1, 0)) == MAP_FAILED))
-    if(bitmap = (uint8_t *)malloc(BITMAP_SZ) )
+    if((bitmap = (uint8_t *)malloc(BITMAP_SZ)) == NULL )
 		/* return with failure */
 		return 1;
 
@@ -132,6 +144,7 @@ tagmap_setb(size_t addr)
 {
 	/* assert the bit that corresponds to the given address */
 	bitmap[VIRT2BYTE(addr)] |= (BYTE_MASK << VIRT2BIT(addr));
+	debugout("setb", addr, 1);
 }
 
 /*
@@ -144,6 +157,7 @@ tagmap_clrb(size_t addr)
 {
 	/* clear the bit that corresponds to the given address */
 	bitmap[VIRT2BYTE(addr)] &= ~(BYTE_MASK << VIRT2BIT(addr));
+	debugout("clrb", addr, 1);
 }
 
 /*
@@ -177,6 +191,7 @@ tagmap_setw(size_t addr)
 	 */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) |=
 			(WORD_MASK << VIRT2BIT(addr));
+    debugout("setw", addr, 8);
 }
 
 /*
@@ -190,6 +205,7 @@ tagmap_clrw(size_t addr)
 	/* clear the bits that correspond to the addresses of the word */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 			~(WORD_MASK << VIRT2BIT(addr));
+    debugout("clrw", addr, 8);
 }
 
 /*
@@ -205,6 +221,7 @@ tagmap_getw(size_t addr)
 	/* get the bits that correspond to the addresses of the word */
 	return *((uint16_t *)(bitmap + VIRT2BYTE(addr))) &
 			(WORD_MASK << VIRT2BIT(addr));
+
 }
 
 /*
@@ -224,6 +241,7 @@ tagmap_setl(size_t addr)
 	 */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) |=
 			(LONG_MASK << VIRT2BIT(addr));
+    debugout("setl", addr, 16);
 }
 
 /*
@@ -237,6 +255,7 @@ tagmap_clrl(size_t addr)
 	/* clear the bits that correspond to the addresses of the long word */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 			~(LONG_MASK << VIRT2BIT(addr));
+    debugout("clrl", addr, 16);
 }
 
 /*
@@ -271,6 +290,7 @@ tagmap_setq(size_t addr)
 	 */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) |=
 			(QUAD_MASK << VIRT2BIT(addr));
+    debugout("setq", addr, 32);
 }
 
 /*
@@ -284,6 +304,7 @@ tagmap_clrq(size_t addr)
 	/* assert the bits that correspond to the addresses of the quad word */
 	*((uint16_t *)(bitmap + VIRT2BYTE(addr))) &=
 			~(QUAD_MASK << VIRT2BIT(addr));
+    debugout("clrl", addr, 32);
 }
 
 /*
@@ -318,7 +339,7 @@ tagmap_setn(size_t addr, size_t num)
 {
 	/* alignment offset */
 	int alg_off;
-
+    debugout("setn", addr, num);
 	/* fast path for small writes (i.e., ~8 bytes) */
 	if (num <= ALIGN_OFF_MAX) {
 		switch (num) {
@@ -540,7 +561,7 @@ tagmap_clrn(size_t addr, size_t num)
 {
 	/* alignment offset */
 	int alg_off;
-
+    debugout("clrn", addr, num);
 	/* fast path for small writes (i.e., ~8 bytes) */
 	if (num <= ALIGN_OFF_MAX) {
 		switch (num) {

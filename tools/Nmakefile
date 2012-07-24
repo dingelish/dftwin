@@ -15,8 +15,8 @@ CXX         = cl
 AR          = lib
 LINK        = link
 
-OBJS		= nullpin.obj libdft.obj libdft-dta.obj
-SOBJS       = nullpin.dll libdft.dll libdft-dta.dll
+OBJS		= nullpin.obj libdft.obj libdft-dta.obj dftwin.obj
+SOBJS       = nullpin.dll libdft.dll libdft-dta.dll dftwin.dll
 
 all: sanity tools
 tools: $(SOBJS)
@@ -41,6 +41,12 @@ libdft-dta.dll: libdft-dta.obj
 
 libdft-dta.obj: libdft-dta.cpp ..\src\branch_pred.h
 	$(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+
+dftwin.obj: dftwin.cpp ..\src\branch_pred.h
+    $(CXX) $(CXXFLAGS) $(H_INCLUDE) /Fo$(@) $(@B).cpp
+
+dftwin.dll: dftwin.obj
+    $(LINK) $(CXXFLAGS_SO) $(L_INCLUDE) /OUT:$(@) $(@B).obj $(LIBS)
 
 # clean (tools)
 clean:

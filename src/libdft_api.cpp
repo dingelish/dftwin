@@ -47,6 +47,14 @@
 #include "tagmap.h"
 #include "branch_pred.h"
 #define __func__ __FUNCTION__
+#include <cstdio>
+
+FILE *inner_logfile;
+
+void set_logfile(FILE* real_log){
+    inner_logfile = real_log;
+    return ;
+}
 
 /*
  * thread context pointer (TLS emulation); we
@@ -343,8 +351,10 @@ trace_inspect(TRACE trace, VOID *v)
 				/*
 				 * analyze the instruction (default handler)
 				 */
-				if (ins_desc[ins_indx].dflact == INSDFL_ENABLE)
+				if (ins_desc[ins_indx].dflact == INSDFL_ENABLE){
 					ins_inspect(ins);
+				}
+
 
 				/*
 				 * invoke the post-ins instrumentation callback
@@ -354,6 +364,61 @@ trace_inspect(TRACE trace, VOID *v)
 		}
 	}
 }
+
+/*
+ * trace inspection (instrumentation function)
+ *
+ * traverse the basic blocks (BBLs) on the trace and
+ * inspect every instruction for instrumenting it
+ * accordingly
+ *
+ * @trace:      instructions trace; given by PIN
+ * @v:		callback value
+ */
+static void
+trace_inspect_debug(TRACE trace, VOID *v, FILE *logfile)
+{
+	/* iterators */
+	BBL bbl;
+	INS ins;
+	xed_iclass_enum_t ins_indx;
+
+	/* traverse all the BBLs in the trace */
+	for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
+		/* traverse all the instructions in the BBL */
+		for (ins = BBL_InsHead(bbl);
+				INS_Valid(ins);
+				ins = INS_Next(ins)) {
+			        /*
+				 * use XED to decode the instruction and
+				 * extract its opcode
+				 */
+				ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
+
+				/*
+				 * invoke the pre-ins instrumentation callback
+				 */
+				if (ins_desc[ins_indx].pre != NULL)
+					ins_desc[ins_indx].pre(ins);
+
+				/*
+				 * analyze the instruction (default handler)
+				 */
+				if (ins_desc[ins_indx].dflact == INSDFL_ENABLE){
+                    ins_inspect(ins);
+
+				}
+
+
+				/*
+				 * invoke the post-ins instrumentation callback
+				 */
+				if (ins_desc[ins_indx].post != NULL)
+					ins_desc[ins_indx].post(ins);
+		}
+	}
+}
+
 
 /*
  * initialize thread contexts
@@ -465,6 +530,41 @@ libdft_init()
 	/* success */
 	return 0;
 }
+
+/*
+ * initialization of the core tagging engine;
+ * it must be called before using everything else
+ *
+ * returns: 0 on success, 1 on error
+ */
+int
+libdft_part_init()
+{
+	/* initialize thread contexts; optimized branch */
+	if (unlikely(thread_ctx_init()))
+		/* thread contexts failed */
+		return 1;
+
+	/* initialize the tagmap; optimized branch */
+	if (unlikely(tagmap_alloc()))
+//		/* tagmap initialization failed */
+		return 2;
+
+	/* initialize the ins descriptors */
+	(void)memset(ins_desc, 0, sizeof(ins_desc));
+
+	/* register trace_ins() to be called for every trace */
+	TRACE_AddInstrumentFunction(trace_inspect, NULL);
+
+
+	/* FIXME: ugly hack for bypassing unaligned address checks */
+	PIN_AddInternalExceptionHandler(fix_eflags, NULL);
+
+	/* success */
+	return 0;
+}
+
+
 
 /*
  * stop the execution of the application inside the

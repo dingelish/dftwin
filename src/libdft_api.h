@@ -154,4 +154,6 @@ size_t	REG32_INDX(REG);
 size_t	REG16_INDX(REG);
 size_t	REG8_INDX(REG);
 
+int libdft_part_init();
+void set_logfile(FILE* real_log);
 #endif /* __LIBDFT_API_H__ */

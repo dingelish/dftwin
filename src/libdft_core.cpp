@@ -57,6 +57,65 @@ typedef unsigned short uint16_t;
 /* thread context */
 extern REG	thread_ctx_ptr;
 extern FILE *inner_logfile;
+extern TLS_KEY trace_tls_key;
+INS my_ins;
+
+extern struct moditem mi[200];
+
+extern moditem * hash_mod[0x10000];
+
+extern int totalmods;
+
+extern bool is_inited;
+
+extern bool require_update;
+
+
+FILE *GetOutputFile() {
+    return ((thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId())) -> logfile;
+}
+unsigned long getins(){
+    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+//    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
+    return (((thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId())) -> insaddr);
+}
+void setins(INS ins){
+    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+    t_local->insaddr = INS_Address(ins);
+    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
+}
+#define KEYDFTTRACE
+#ifdef KEYDFTTRACE
+#define KEYTRACE0 \
+    {moditem *entry = hash_mod[getins()>>16]; if(entry == NULL) require_update = 1; fprintf(GetOutputFile(), "%s\t%08X\n",entry->name, getins());}
+//    fprintf(GetOutputFile(), "%08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str())
+
+
+#define KEYTRACE \
+    if(src_tag)KEYTRACE0;
+#define KEYTRACE1 \
+    if(thread_ctx->vcpu.gpr[dst])KEYTRACE0;
+#define KEYTRACE2 \
+    if(thread_ctx->vcpu.gpr[src])KEYTRACE0;
+#define KEYTRACE3 \
+    if(tmp_tag)KEYTRACE0;
+#else
+#define KEYTRACE
+#define KEYTRACE0
+#define KEYTRACE1
+#define KEYTRACE2
+#define KEYTRACE3
+#endif
+
+//#define FULLDFTTRACE
+
+#ifdef FULLDFTTRACE
+#define TRACEOUT \
+    fprintf(GetOutputFile(), "%08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str());
+#else
+#define TRACEOUT
+#endif
+
 /* tagmap */
 extern uint8_t	*bitmap;
 
@@ -86,7 +145,7 @@ _cwde(thread_ctx_t *thread_ctx)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[7] & VCPU_MASK16;
-
+    KEYTRACE;
 	/* extension; 16-bit to 32-bit */
 	src_tag |= (src_tag << 2);
 
@@ -111,7 +170,7 @@ _movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8H_16[src_tag];
@@ -135,7 +194,7 @@ _movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* temporary tag value */
 	size_t src_tag =
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
@@ -158,7 +217,7 @@ _movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8H_32[src_tag];
 }
@@ -180,7 +239,7 @@ _movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
@@ -202,7 +261,7 @@ _movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
-
+    KEYTRACE;
 	/* extension; 16-bit to 32-bit */
 	src_tag |= (src_tag << 2);
 
@@ -229,7 +288,7 @@ _movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
@@ -254,7 +313,7 @@ _movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
@@ -278,7 +337,7 @@ _movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-
+    KEYTRACE;
 	/* extension; 16-bit to 32-bit */
 	src_tag |= (src_tag << 2);
 
@@ -304,7 +363,7 @@ _movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* temporary tag value */
 	size_t src_tag =
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
@@ -328,7 +387,7 @@ _movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* temporary tag value */
 	size_t src_tag =
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
@@ -352,7 +411,7 @@ _movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* temporary tag value */
 	size_t src_tag =
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -374,7 +433,7 @@ _movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -396,7 +455,7 @@ _movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -420,7 +479,7 @@ _movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
@@ -445,7 +504,7 @@ _movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -469,7 +528,7 @@ _movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-
+    KEYTRACE;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -501,6 +560,7 @@ _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[src];
+    KEYTRACE2;
 
 	/* compare the dst and src values */
 	return (dst_val == src_val);
@@ -529,6 +589,7 @@ _cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* update */
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[src];
+    KEYTRACE2;
 }
 
 /*
@@ -561,6 +622,9 @@ _cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
 
 	/* compare the dst and src values */
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK16)
+        KEYTRACE0;
+
 	return (dst_val == src_val);
 }
 
@@ -588,6 +652,8 @@ _cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK16)
+        KEYTRACE0;
 }
 
 /*
@@ -619,6 +685,10 @@ _cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
 		VCPU_MASK32;
 
 	/* compare the dst and src values; the original values the tag bits */
+
+//	KEYTRACE2;
+    if(thread_ctx->vcpu.gpr[7])
+        KEYTRACE0;
 	return (dst_val == *(uint32_t *)src);
 }
 
@@ -649,6 +719,7 @@ _cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
+    KEYTRACE2;
 }
 
 /*
@@ -713,6 +784,7 @@ _cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
 		VIRT2BIT(dst));
+    KEYTRACE2;
 }
 
 /*
@@ -733,7 +805,7 @@ _xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
@@ -761,7 +833,7 @@ _xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -789,7 +861,7 @@ _xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
@@ -817,7 +889,7 @@ _xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -845,7 +917,7 @@ _xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -853,6 +925,7 @@ _xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK16) | tmp_tag;
+    KEYTRACE2;
 }
 
 /*
@@ -874,7 +947,7 @@ _xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
@@ -905,7 +978,7 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -935,7 +1008,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -945,7 +1018,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
 							      VIRT2BIT(dst))) |
-		((uint16_t)(tmp_tag) < VIRT2BIT(dst));
+		((uint16_t)(tmp_tag) << VIRT2BIT(dst));
 }
 
 /*
@@ -967,7 +1040,7 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -997,7 +1070,7 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1025,7 +1098,7 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1053,7 +1126,7 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1081,7 +1154,7 @@ _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1109,7 +1182,7 @@ _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
@@ -1138,7 +1211,7 @@ _xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1169,7 +1242,7 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1199,7 +1272,7 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
@@ -1231,7 +1304,7 @@ _xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-
+    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -1267,6 +1340,7 @@ _lea_r2r_opw(thread_ctx_t *thread_ctx,
 		((thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[base] & VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[index] & VCPU_MASK16));
+    KEYTRACE1;
 }
 
 /*
@@ -1291,6 +1365,7 @@ _lea_r2r_opl(thread_ctx_t *thread_ctx,
 	/* update the destination */
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[base] | thread_ctx->vcpu.gpr[index];
+    KEYTRACE1;
 }
 
 /*
@@ -1309,7 +1384,7 @@ r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-
+    KEYTRACE3;
 	/* update the destination (ternary) */
 	thread_ctx->vcpu.gpr[7] |= MAP_8H_16[tmp_tag];
 }
@@ -1330,7 +1405,7 @@ r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* update the destination (ternary) */
 	thread_ctx->vcpu.gpr[7] |= MAP_8L_16[tmp_tag];
 }
@@ -1353,7 +1428,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
-
+    KEYTRACE3;
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= tmp_tag;
 	thread_ctx->vcpu.gpr[7] |= tmp_tag;
@@ -1375,6 +1450,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
 static void PIN_FAST_ANALYSIS_CALL
 r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src)
 {
+    KEYTRACE2;
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= thread_ctx->vcpu.gpr[src];
 	thread_ctx->vcpu.gpr[7] |= thread_ctx->vcpu.gpr[src];
@@ -1398,7 +1474,7 @@ m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* temporary tag value */
 	size_t tmp_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-
+    KEYTRACE3;
 	/* update the destination (ternary) */
 	thread_ctx->vcpu.gpr[7] |= MAP_8L_16[tmp_tag];
 }
@@ -1425,7 +1501,7 @@ m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src)
 	size_t tmp_tag =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16;
-
+    KEYTRACE3;
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= tmp_tag;
 	thread_ctx->vcpu.gpr[7] |= tmp_tag;
@@ -1452,7 +1528,7 @@ m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	size_t tmp_tag =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
-
+    KEYTRACE3;
 	/* update the destinations */
 	thread_ctx->vcpu.gpr[5] |= tmp_tag;
 	thread_ctx->vcpu.gpr[7] |= tmp_tag;
@@ -1473,6 +1549,8 @@ r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1;
+    if((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1)
+        KEYTRACE0;
 }
 
 /*
@@ -1490,6 +1568,8 @@ r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1;
+    if((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)
+        KEYTRACE0;
 }
 
 /*
@@ -1507,6 +1587,8 @@ r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
+    if(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1))
+        KEYTRACE0;
 }
 
 /*
@@ -1524,6 +1606,8 @@ r2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK8)
+        KEYTRACE0;
 }
 
 /*
@@ -1541,6 +1625,8 @@ r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK16)
+        KEYTRACE0;
 }
 
 /*
@@ -1557,6 +1643,7 @@ static void PIN_FAST_ANALYSIS_CALL
 r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] |= thread_ctx->vcpu.gpr[src];
+	KEYTRACE2;
 }
 
 /*
@@ -1575,6 +1662,9 @@ m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8) << 1;
+    if(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8) << 1){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1593,6 +1683,9 @@ m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
+    if((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8){
+            KEYTRACE0;
+    }
 }
 
 /*
@@ -1612,6 +1705,9 @@ m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	thread_ctx->vcpu.gpr[dst] |=
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16;
+    if((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) & VCPU_MASK16){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1629,8 +1725,10 @@ static void PIN_FAST_ANALYSIS_CALL
 m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	thread_ctx->vcpu.gpr[dst] |=
-		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
-		VCPU_MASK32;
+		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) & VCPU_MASK32;
+    if((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) & VCPU_MASK32){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1648,8 +1746,10 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	bitmap[VIRT2BYTE(dst)] |=
-		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)
-		<< VIRT2BIT(dst);
+		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)<< VIRT2BIT(dst);
+    if(((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)<< VIRT2BIT(dst)){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1668,6 +1768,9 @@ r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	bitmap[VIRT2BYTE(dst)] |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << VIRT2BIT(dst);
+    if((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << VIRT2BIT(dst)){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1685,8 +1788,10 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) |=
-		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
-		VIRT2BIT(dst);
+		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) << VIRT2BIT(dst);
+    if((thread_ctx->vcpu.gpr[src] & VCPU_MASK16) << VIRT2BIT(dst)){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1704,8 +1809,10 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_binary_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) |=
-		(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
-		VIRT2BIT(dst);
+		(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) << VIRT2BIT(dst);
+    if((thread_ctx->vcpu.gpr[src] & VCPU_MASK32) << VIRT2BIT(dst)){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -1810,8 +1917,8 @@ static void PIN_FAST_ANALYSIS_CALL
 r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	 thread_ctx->vcpu.gpr[dst] =
-		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
-		 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
+		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |	 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
+    KEYTRACE1;
 }
 
 /*
@@ -1830,6 +1937,7 @@ r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1);
+    KEYTRACE1;
 }
 
 /*
@@ -1846,8 +1954,9 @@ static void PIN_FAST_ANALYSIS_CALL
 r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] =
-		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
-		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
+		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
+		KEYTRACE1;
+
 }
 
 /*
@@ -1866,6 +1975,7 @@ r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8);
+    KEYTRACE1;
 }
 
 /*
@@ -1884,6 +1994,7 @@ r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
+		KEYTRACE1;
 }
 
 /*
@@ -1901,6 +2012,7 @@ r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[src];
+    KEYTRACE2;
 }
 
 /*
@@ -1921,6 +2033,7 @@ m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
 		(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) << 1) &
 		(VCPU_MASK8 << 1));
+    KEYTRACE1;
 }
 
 /*
@@ -1940,6 +2053,7 @@ m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8);
+    KEYTRACE1;
 }
 
 /*
@@ -1960,6 +2074,7 @@ m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
+    KEYTRACE1;
 }
 
 /*
@@ -1979,6 +2094,7 @@ m2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK32;
+    KEYTRACE1;
 }
 
 /*
@@ -2004,8 +2120,10 @@ r2m_xfer_opbn(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 0 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK8)
+		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK8){
 			tagmap_setn(dst, count);
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst, count);
@@ -2014,8 +2132,10 @@ r2m_xfer_opbn(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 1 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK8)
+		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK8){
 			tagmap_setn(dst - count + 1, count);
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst - count + 1, count);
@@ -2041,6 +2161,8 @@ r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		(((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)
 		<< VIRT2BIT(dst));
+    if(bitmap[VIRT2BYTE(dst)])
+        KEYTRACE0;
 }
 
 /*
@@ -2060,6 +2182,8 @@ r2m_xfer_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << VIRT2BIT(dst));
+    if(bitmap[VIRT2BYTE(dst)])
+        KEYTRACE0;
 }
 
 /*
@@ -2084,8 +2208,10 @@ r2m_xfer_opwn(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 0 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK16)
+		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK16){
 			tagmap_setn(dst, (count << 1));
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst, (count << 1));
@@ -2094,8 +2220,10 @@ r2m_xfer_opwn(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 1 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK16)
+		if (thread_ctx->vcpu.gpr[7] & VCPU_MASK16){
 			tagmap_setn(dst - (count << 1) + 1, (count << 1));
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst - (count << 1) + 1, (count << 1));
@@ -2121,6 +2249,8 @@ r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
 		VIRT2BIT(dst));
+    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+        KEYTRACE0;
 }
 
 /*
@@ -2146,8 +2276,10 @@ r2m_xfer_opln(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 0 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7])
+		if (thread_ctx->vcpu.gpr[7]){
 			tagmap_setn(dst, (count << 2));
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst, (count << 2));
@@ -2156,8 +2288,10 @@ r2m_xfer_opln(thread_ctx_t *thread_ctx,
 		/* EFLAGS.DF = 1 */
 
 		/* the source register is taged */
-		if (thread_ctx->vcpu.gpr[7])
+		if (thread_ctx->vcpu.gpr[7]){
 			tagmap_setn(dst - (count << 2) + 1, (count << 2));
+			KEYTRACE0;
+		}
 		/* the source register is clear */
 		else
 			tagmap_clrn(dst - (count << 2) + 1, (count << 2));
@@ -2183,6 +2317,8 @@ r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
+    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+        KEYTRACE0;
 }
 
 /*
@@ -2202,6 +2338,9 @@ m2m_xfer_opw(ADDRINT dst, ADDRINT src)
 							      VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& WORD_MASK) << VIRT2BIT(dst);
+    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst)))){
+        KEYTRACE0;
+    }
 }
 
 /*
@@ -2217,10 +2356,11 @@ static void PIN_FAST_ANALYSIS_CALL
 m2m_xfer_opb(ADDRINT dst, ADDRINT src)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
-		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(BYTE_MASK <<
-							      VIRT2BIT(dst))) |
+		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(BYTE_MASK <<  VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& BYTE_MASK) << VIRT2BIT(dst);
+    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+        KEYTRACE0;
 }
 
 /*
@@ -2240,6 +2380,8 @@ m2m_xfer_opl(ADDRINT dst, ADDRINT src)
 							      VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& LONG_MASK) << VIRT2BIT(dst);
+    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+        KEYTRACE0;
 }
 
 /*
@@ -2319,6 +2461,13 @@ m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
 	thread_ctx->vcpu.gpr[7] =
 		(thread_ctx->vcpu.gpr[7] & ~VCPU_MASK16) |
 		((src_val >> VIRT2BIT(src + 6)) & VCPU_MASK16);
+    unsigned int i;
+    for(i = 0; i < 8; i ++){
+        if(thread_ctx->vcpu.gpr[i]){
+            KEYTRACE0;
+            break;
+        }
+    }
 }
 
 /*
@@ -2378,6 +2527,13 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
 	/* restore EAX */
 	thread_ctx->vcpu.gpr[7] =
 		(src_val >> VIRT2BIT(src + 4)) & VCPU_MASK32;
+    unsigned int i;
+    for(i = 0; i < 8; i ++){
+        if(thread_ctx->vcpu.gpr[i]){
+            KEYTRACE0;
+            break;
+        }
+    }
 }
 
 /*
@@ -2470,6 +2626,13 @@ r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[7] & VCPU_MASK16) <<
 		VIRT2BIT(dst));
+    unsigned int i;
+    for(i = 0; i < 8; i ++){
+        if(thread_ctx->vcpu.gpr[i] & VCPU_MASK16){
+            KEYTRACE0;
+            break;
+        }
+    }
 }
 
 /*
@@ -2562,6 +2725,13 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[7] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
+    unsigned int i;
+    for(i = 0; i < 8; i ++){
+        if(thread_ctx->vcpu.gpr[i] & VCPU_MASK16){
+            KEYTRACE0;
+            break;
+        }
+    }
 }
 
 /*
@@ -2584,6 +2754,11 @@ ins_inspect(INS ins)
 	/* use XED to decode the instruction and extract its opcode */
 	xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
 
+    setins(ins);
+//    getins();
+//    fprintf(stdout, "before: %08X\t%s\n", INS_Address(ins), INS_Disassemble(ins).c_str());
+//    fprintf(stdout, "after : %08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str());
+    //printf("after ins_inspect!\n");
 	/* sanity check */
 	if (unlikely(ins_indx <= XED_ICLASS_INVALID ||
 				ins_indx >= XED_ICLASS_LAST)) {
@@ -2592,7 +2767,6 @@ ins_inspect(INS ins)
 		/* done */
 		return;
 	}
-
 	/* analyze the instruction */
 	switch (ins_indx) {
 		/* adc */
@@ -2638,7 +2812,7 @@ ins_inspect(INS ins)
 							if (reg_dst == reg_src)
 							{
 								/* clear */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 								IPOINT_BEFORE,
 								(AFUNPTR)r_clrl,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2657,7 +2831,7 @@ ins_inspect(INS ins)
 							 * propagate the tag
 							 * markings accordingly
 							 */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r2r_binary_opl,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2682,7 +2856,7 @@ ins_inspect(INS ins)
 							if (reg_dst == reg_src)
 							{
 								/* clear */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 								IPOINT_BEFORE,
 								(AFUNPTR)r_clrw,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2698,7 +2872,7 @@ ins_inspect(INS ins)
 						/* default behavior */
 						default:
 						/* propagate tags accordingly */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 								IPOINT_BEFORE,
 							(AFUNPTR)r2r_binary_opw,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2723,9 +2897,9 @@ ins_inspect(INS ins)
 							if (reg_dst == reg_src)
 							{
 							/* 8-bit upper */
-						if (REG_is_Upper8(reg_dst))
+						if (REG_is_Upper8(reg_dst)){
 								/* clear */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 								IPOINT_BEFORE,
 							(AFUNPTR)r_clrb_u,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2733,11 +2907,11 @@ ins_inspect(INS ins)
 								thread_ctx_ptr,
 								IARG_UINT32,
 							REG8_INDX(reg_dst),
-								IARG_END);
+								IARG_END);}
 							/* 8-bit lower */
-						else
+						else{
 								/* clear */
-							INS_InsertCall(ins,
+							TRACEOUT; INS_InsertCall(ins,
 								IPOINT_BEFORE,
 							(AFUNPTR)r_clrb_l,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2745,7 +2919,7 @@ ins_inspect(INS ins)
 								thread_ctx_ptr,
 								IARG_UINT32,
 							REG8_INDX(reg_dst),
-								IARG_END);
+								IARG_END);}
 
 								/* done */
 								break;
@@ -2754,42 +2928,42 @@ ins_inspect(INS ins)
 						default:
 						/* propagate tags accordingly */
 					if (REG_is_Lower8(reg_dst) &&
-							REG_is_Lower8(reg_src))
+							REG_is_Lower8(reg_src)){
 						/* lower 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_binary_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
-							REG_is_Upper8(reg_src))
+							REG_is_Upper8(reg_src)){
 						/* upper 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_binary_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else if (REG_is_Lower8(reg_dst))
+						IARG_END);}
+					else if (REG_is_Lower8(reg_dst)){
 						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_binary_opb_lu,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					else
 						/*
 						 * destination register is an
@@ -2797,14 +2971,14 @@ ins_inspect(INS ins)
 						 * source register is a lower
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					{TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_binary_opb_ul,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					}
 				}
 			}
@@ -2820,49 +2994,49 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_binary_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_binary_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (upper) */
-				else if (REG_is_Upper8(reg_dst))
+				else if (REG_is_Upper8(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_binary_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_binary_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* 1st operand is memory */
 			else {
@@ -2870,49 +3044,49 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_binary_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_binary_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_binary_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_binary_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -2955,7 +3129,7 @@ ins_inspect(INS ins)
 						/* 4 bytes */
 						case MEM_LONG_LEN:
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)tagmap_clrl,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2967,7 +3141,7 @@ ins_inspect(INS ins)
 						/* 2 bytes */
 						case MEM_WORD_LEN:
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)tagmap_clrw,
 							IARG_FAST_ANALYSIS_CALL,
@@ -2979,7 +3153,7 @@ ins_inspect(INS ins)
 						/* 1 byte */
 						case MEM_BYTE_LEN:
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)tagmap_clrb,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3004,45 +3178,45 @@ ins_inspect(INS ins)
 					reg_dst = INS_OperandReg(ins, OP_0);
 
 					/* 32-bit operand */
-					if (REG_is_gr32(reg_dst))
+					if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r_clrl,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
-							IARG_END);
+							IARG_END);}
 					/* 16-bit operand */
-					else if (REG_is_gr16(reg_dst))
+					else if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r_clrw,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
-							IARG_END);
+							IARG_END);}
 					/* 8-bit operand (upper) */
-					else if (REG_is_Upper8(reg_dst))
+					else if (REG_is_Upper8(reg_dst)){
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r_clrb_u,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
-							IARG_END);
+							IARG_END);}
 					/* 8-bit operand (lower) */
-					else
+					else{
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r_clrb_l,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
-							IARG_END);
+							IARG_END);}
 				}
 			}
 			/* both operands are registers */
@@ -3052,82 +3226,82 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
 					/* propagate tag accordingly */
 					if (REG_is_Lower8(reg_dst) &&
-							REG_is_Lower8(reg_src))
+							REG_is_Lower8(reg_src)){
 						/* lower 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
-							REG_is_Upper8(reg_src))
+							REG_is_Upper8(reg_src)){
 						/* upper 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else if (REG_is_Lower8(reg_dst))
+						IARG_END);}
+					else if (REG_is_Lower8(reg_dst)){
 						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opb_lu,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else
+						IARG_END);}
+					else{
 						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opb_ul,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 			}
 			/*
@@ -3142,49 +3316,49 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (upper) */
-				else if (REG_is_Upper8(reg_dst))
+				else if (REG_is_Upper8(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* 1st operand is memory */
 			else {
@@ -3192,49 +3366,49 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -3270,7 +3444,7 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
 					INS_InsertPredicatedCall(ins,
 						IPOINT_BEFORE,
@@ -3279,9 +3453,9 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 						IPOINT_BEFORE,
@@ -3290,7 +3464,7 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 			/*
 			 * 2nd operand is memory;
@@ -3304,7 +3478,7 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
 					INS_InsertPredicatedCall(ins,
 						IPOINT_BEFORE,
@@ -3313,9 +3487,9 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* propagate the tag accordingly */
 					INS_InsertPredicatedCall(ins,
 						IPOINT_BEFORE,
@@ -3324,7 +3498,7 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -3338,7 +3512,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_CBW:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r2r_xfer_opb_ul,
 				IARG_FAST_ANALYSIS_CALL,
@@ -3358,7 +3532,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_CWD:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r2r_xfer_opw,
 				IARG_FAST_ANALYSIS_CALL,
@@ -3378,7 +3552,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_CWDE:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)_cwde,
 				IARG_FAST_ANALYSIS_CALL,
@@ -3396,7 +3570,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_CDQ:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r2r_xfer_opl,
 				IARG_FAST_ANALYSIS_CALL,
@@ -3430,60 +3604,60 @@ ins_inspect(INS ins)
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst)) {
 					/* upper 8-bit */
-					if (REG_is_Upper8(reg_src))
+					if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_r2r_opwb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else
+						IARG_END);}
+					else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_r2r_opwb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 				/* 32-bit & 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_r2r_oplw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands (upper 8-bit) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_r2r_oplb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands (lower 8-bit) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_r2r_oplb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 			/* 2nd operand is memory */
 			else {
@@ -3491,39 +3665,39 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 16-bit & 8-bit operands */
-				if (REG_is_gr16(reg_dst))
+				if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_m2r_opwb,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 16-bit operands */
 				else if (INS_MemoryWriteSize(ins) ==
-						BIT2BYTE(MEM_WORD_LEN))
+						BIT2BYTE(MEM_WORD_LEN)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_m2r_oplw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movsx_m2r_oplb,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -3552,60 +3726,60 @@ ins_inspect(INS ins)
 				/* 16-bit & 8-bit operands */
 				if (REG_is_gr16(reg_dst)) {
 					/* upper 8-bit */
-					if (REG_is_Upper8(reg_src))
+					if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_r2r_opwb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else
+						IARG_END);}
+					else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_r2r_opwb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 				/* 32-bit & 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_r2r_oplw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands (upper 8-bit) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_r2r_oplb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands (lower 8-bit) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_r2r_oplb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 			/* 2nd operand is memory */
 			else {
@@ -3613,39 +3787,39 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 16-bit & 8-bit operands */
-				if (REG_is_gr16(reg_dst))
+				if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_m2r_opwb,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 16-bit operands */
 				else if (INS_MemoryWriteSize(ins) ==
-						BIT2BYTE(MEM_WORD_LEN))
+						BIT2BYTE(MEM_WORD_LEN)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_m2r_oplw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 32-bit & 8-bit operands */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_movzx_m2r_oplb,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -3670,7 +3844,7 @@ ins_inspect(INS ins)
 					/* 4 bytes */
 					case BIT2BYTE(MEM_LONG_LEN):
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opl,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3683,7 +3857,7 @@ ins_inspect(INS ins)
 					/* 2 bytes */
 					case BIT2BYTE(MEM_WORD_LEN):
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opw,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3697,7 +3871,7 @@ ins_inspect(INS ins)
 					case BIT2BYTE(MEM_BYTE_LEN):
 					default:
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opb,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3714,45 +3888,45 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operand */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -3774,7 +3948,7 @@ ins_inspect(INS ins)
 					/* 4 bytes */
 					case BIT2BYTE(MEM_LONG_LEN):
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opl,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3787,7 +3961,7 @@ ins_inspect(INS ins)
 					/* 2 bytes */
 					case BIT2BYTE(MEM_WORD_LEN):
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opw,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3801,7 +3975,7 @@ ins_inspect(INS ins)
 					case BIT2BYTE(MEM_BYTE_LEN):
 					default:
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 						(AFUNPTR)m2r_ternary_opb,
 							IARG_FAST_ANALYSIS_CALL,
@@ -3818,45 +3992,45 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operand */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_ternary_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 			}
 			/* two/three-operands form */
@@ -3872,27 +4046,27 @@ ins_inspect(INS ins)
 					reg_src = INS_OperandReg(ins, OP_1);
 
 					/* 32-bit operands */
-					if (REG_is_gr32(reg_dst))
+					if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r2r_binary_opl,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
-							IARG_END);
+							IARG_END);}
 					/* 16-bit operands */
-					else
+					else{
 					/* propagate tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)r2r_binary_opw,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-							IARG_END);
+							IARG_END);}
 				}
 				/*
 				 * 2nd operand is memory;
@@ -3906,27 +4080,27 @@ ins_inspect(INS ins)
 					reg_dst = INS_OperandReg(ins, OP_0);
 
 					/* 32-bit operands */
-					if (REG_is_gr32(reg_dst))
+					if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)m2r_binary_opl,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 							IARG_MEMORYREAD_EA,
-							IARG_END);
+							IARG_END);}
 					/* 16-bit operands */
-					else
+					else{
 					/* propagate the tag accordingly */
-						INS_InsertCall(ins,
+						TRACEOUT; INS_InsertCall(ins,
 							IPOINT_BEFORE,
 							(AFUNPTR)m2r_binary_opw,
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 							IARG_MEMORYREAD_EA,
-							IARG_END);
+							IARG_END);}
 				}
 			}
 
@@ -3959,7 +4133,8 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 8-bit operand (upper) */
-				if (REG_is_Upper8(reg_dst))
+				if (REG_is_Upper8(reg_dst)){
+				    TRACEOUT;
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 							IPOINT_BEFORE,
@@ -3968,8 +4143,10 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_END);
+				}
 				/* 8-bit operand (lower) */
-				else
+				else{
+				    TRACEOUT;
 					/* propagate tag accordingly */
 					INS_InsertPredicatedCall(ins,
 							IPOINT_BEFORE,
@@ -3977,17 +4154,18 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
-						IARG_END);
+						IARG_END);}
 			}
 			/* memory operand */
-			else
+			else{
+			    TRACEOUT;
 				/* propagate the tag accordingly */
 				INS_InsertPredicatedCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)tagmap_clrb,
 					IARG_FAST_ANALYSIS_CALL,
 					IARG_MEMORYWRITE_EA,
-					IARG_END);
+					IARG_END);}
 
 			/* done */
 			break;
@@ -3997,7 +4175,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_STMXCSR:
 			/* propagate tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)tagmap_clrl,
 				IARG_FAST_ANALYSIS_CALL,
@@ -4020,35 +4198,35 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 16-bit register */
-				if (REG_is_gr16(reg_dst))
+				if (REG_is_gr16(reg_dst)){
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r_clrw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
-						IARG_END);
+						IARG_END);}
 				/* 32-bit register */
-				else
+				else{
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r_clrl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
-						IARG_END);
+						IARG_END);}
 			}
 			/* memory operand */
-			else
+			else{
 				/* propagate tag accordingly */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)tagmap_clrw,
 					IARG_FAST_ANALYSIS_CALL,
 					IARG_MEMORYWRITE_EA,
-					IARG_END);
+					IARG_END);}
 
 			/* done */
 			break;
@@ -4061,43 +4239,43 @@ ins_inspect(INS ins)
 			reg_dst = INS_OperandReg(ins, OP_0);
 
 			/* 16-bit register */
-			if (REG_is_gr16(reg_dst))
+			if (REG_is_gr16(reg_dst)){
 				/* propagate tag accordingly */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r_clrw,
 					IARG_FAST_ANALYSIS_CALL,
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
-					IARG_END);
+					IARG_END);}
 			/* 32-bit register */
-			else
+			else{
 				/* propagate tag accordingly */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r_clrl,
 					IARG_FAST_ANALYSIS_CALL,
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
-					IARG_END);
+					IARG_END);}
 
 			/* done */
 			break;
 		/* rdpmc */
 		case XED_ICLASS_RDPMC:
 		/* rdtsc */
-		case XED_ICLASS_RDTSC:
+		case XED_ICLASS_RDTSC:{
 			/*
 			 * clear the tag information associated with
 			 * EAX and EDX
 			 */
 			/* propagate tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r_clrl2,
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
-				IARG_END);
+				IARG_END);}
 
 			/* done */
 			break;
@@ -4108,7 +4286,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_CPUID:
 			/* propagate tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r_clrl4,
 				IARG_FAST_ANALYSIS_CALL,
@@ -4123,7 +4301,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_LAHF:
 			/* propagate tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r_clrb_u,
 				IARG_FAST_ANALYSIS_CALL,
@@ -4266,7 +4444,7 @@ ins_inspect(INS ins)
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)) {
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
@@ -4274,7 +4452,7 @@ ins_inspect(INS ins)
 						IARG_UINT32, 8,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_END);
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
@@ -4282,7 +4460,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_END);
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
@@ -4292,71 +4470,71 @@ ins_inspect(INS ins)
 						IARG_END);
 				}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_r2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
 					/* propagate tag accordingly */
 					if (REG_is_Lower8(reg_dst) &&
-						REG_is_Lower8(reg_src))
+						REG_is_Lower8(reg_src)){
 						/* lower 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_r2r_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
-						REG_is_Upper8(reg_src))
+						REG_is_Upper8(reg_src)){
 						/* upper 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_r2r_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else if (REG_is_Lower8(reg_dst))
+						IARG_END);}
+					else if (REG_is_Lower8(reg_dst)){
 						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_r2r_opb_lu,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else
+						IARG_END);}
+					else{
 						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_r2r_opb_ul,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 			}
 			/*
@@ -4371,49 +4549,49 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (upper) */
-				else if (REG_is_Upper8(reg_dst))
+				else if (REG_is_Upper8(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* 1st operand is memory */
 			else {
@@ -4421,49 +4599,49 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xchg_m2r_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -4483,6 +4661,7 @@ ins_inspect(INS ins)
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)) {
 					/* propagate the tag accordingly */
+					TRACEOUT;
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
@@ -4517,71 +4696,71 @@ ins_inspect(INS ins)
 						IARG_END);
 				}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_dst))
+				else if (REG_is_gr16(reg_dst)){
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_r2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
 					/* propagate tag accordingly */
 					if (REG_is_Lower8(reg_dst) &&
-						REG_is_Lower8(reg_src))
+						REG_is_Lower8(reg_src)){
 						/* lower 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_r2r_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
-						REG_is_Upper8(reg_src))
+						REG_is_Upper8(reg_src)){
 						/* upper 8-bit registers */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_r2r_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else if (REG_is_Lower8(reg_dst))
+						IARG_END);}
+					else if (REG_is_Lower8(reg_dst)){
 						/*
 						 * destination register is a
 						 * lower 8-bit register and
 						 * source register is an upper
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_r2r_opb_lu,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
-					else
+						IARG_END);}
+					else{
 						/*
 						 * destination register is an
 						 * upper 8-bit register and
 						 * source register is a lower
 						 * 8-bit register
 						 */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_r2r_opb_ul,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				}
 			}
 			/* 1st operand is memory */
@@ -4590,49 +4769,49 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_1);
 
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_m2r_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else if (REG_is_gr16(reg_src))
+				else if (REG_is_gr16(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_m2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (upper) */
-				else if (REG_is_Upper8(reg_src))
+				else if (REG_is_Upper8(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_m2r_opb_u,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 8-bit operand (lower) */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_xadd_m2r_opb_l,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -4640,7 +4819,7 @@ ins_inspect(INS ins)
 		/* xlat; similar to a mov between a memory location and AL */
 		case XED_ICLASS_XLAT:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)m2r_xfer_opb_l,
 				IARG_FAST_ANALYSIS_CALL,
@@ -4724,7 +4903,7 @@ ins_inspect(INS ins)
 			/* no rep prefix */
 			else
 				/* the instruction is not rep prefixed */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r2m_xfer_opb_l,
 					IARG_FAST_ANALYSIS_CALL,
@@ -4766,7 +4945,7 @@ ins_inspect(INS ins)
 			/* no rep prefix */
 			else
 				/* the instruction is not rep prefixed */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r2m_xfer_opw,
 					IARG_FAST_ANALYSIS_CALL,
@@ -4807,7 +4986,7 @@ ins_inspect(INS ins)
 			}
 			/* no rep prefix */
 			else
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r2m_xfer_opl,
 					IARG_FAST_ANALYSIS_CALL,
@@ -4860,7 +5039,7 @@ ins_inspect(INS ins)
 		/* sal */
 		case XED_ICLASS_SALC:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r_clrb_l,
 				IARG_FAST_ANALYSIS_CALL,
@@ -4899,51 +5078,51 @@ ins_inspect(INS ins)
 				reg_dst = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operand */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2r_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* memory operand */
 			else if (INS_OperandIsMemory(ins, OP_0)) {
 				/* 32-bit operand */
 				if (INS_MemoryWriteSize(ins) ==
-						BIT2BYTE(MEM_LONG_LEN))
+						BIT2BYTE(MEM_LONG_LEN)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2m_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2m_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -4956,51 +5135,51 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operand */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2m_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
-						IARG_END);
+						IARG_END);}
 			}
 			/* memory operand */
 			else if (INS_OperandIsMemory(ins, OP_0)) {
 				/* 32-bit operand */
 				if (INS_MemoryWriteSize(ins) ==
-						BIT2BYTE(MEM_LONG_LEN))
+						BIT2BYTE(MEM_LONG_LEN)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2m_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)m2m_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* immediate or segment operand; clean */
 			else {
@@ -5009,7 +5188,7 @@ ins_inspect(INS ins)
 					/* 4 bytes */
 					case MEM_LONG_LEN:
 				/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrl,
 						IARG_FAST_ANALYSIS_CALL,
@@ -5021,7 +5200,7 @@ ins_inspect(INS ins)
 					/* 2 bytes */
 					case MEM_WORD_LEN:
 				/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrw,
 						IARG_FAST_ANALYSIS_CALL,
@@ -5033,7 +5212,7 @@ ins_inspect(INS ins)
 					/* 1 byte */
 					case MEM_BYTE_LEN:
 				/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrb,
 						IARG_FAST_ANALYSIS_CALL,
@@ -5057,7 +5236,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_POPA:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)m2r_restore_opw,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5073,7 +5252,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_POPAD:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)m2r_restore_opl,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5089,7 +5268,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_PUSHA:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r2m_save_opw,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5105,7 +5284,7 @@ ins_inspect(INS ins)
 		 */
 		case XED_ICLASS_PUSHAD:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)r2m_save_opl,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5118,7 +5297,7 @@ ins_inspect(INS ins)
 		/* pushf; clear a memory word (i.e., 16-bits) */
 		case XED_ICLASS_PUSHF:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)tagmap_clrw,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5130,7 +5309,7 @@ ins_inspect(INS ins)
 		/* pushfd; clear a double memory word (i.e., 32-bits) */
 		case XED_ICLASS_PUSHFD:
 			/* propagate the tag accordingly */
-			INS_InsertCall(ins,
+			TRACEOUT; INS_InsertCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)tagmap_clrl,
 				IARG_FAST_ANALYSIS_CALL,
@@ -5144,23 +5323,23 @@ ins_inspect(INS ins)
 			/* relative target */
 			if (INS_OperandIsImmediate(ins, OP_0)) {
 				/* 32-bit operand */
-				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN)
+				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* absolute target; register */
 			else if (INS_OperandIsReg(ins, OP_0)) {
@@ -5168,44 +5347,44 @@ ins_inspect(INS ins)
 				reg_src = INS_OperandReg(ins, OP_0);
 
 				/* 32-bit operand */
-				if (REG_is_gr32(reg_src))
+				if (REG_is_gr32(reg_src)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 			}
 			/* absolute target; memory */
 			else {
 				/* 32-bit operand */
-				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN)
+				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operand */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)tagmap_clrw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */
@@ -5222,7 +5401,7 @@ ins_inspect(INS ins)
 			/* 32-bit operands */
 			if (REG_is_gr32(reg_dst)) {
 				/* propagate the tag accordingly */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r2r_xfer_opl,
 					IARG_FAST_ANALYSIS_CALL,
@@ -5230,7 +5409,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
 					IARG_END);
-				INS_InsertCall(ins,
+                    INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)m2r_xfer_opl,
 					IARG_FAST_ANALYSIS_CALL,
@@ -5242,7 +5421,7 @@ ins_inspect(INS ins)
 			/* 16-bit operands */
 			else {
 				/* propagate the tag accordingly */
-				INS_InsertCall(ins,
+				TRACEOUT; INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)r2r_xfer_opw,
 					IARG_FAST_ANALYSIS_CALL,
@@ -5250,7 +5429,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
 					IARG_END);
-				INS_InsertCall(ins,
+                    INS_InsertCall(ins,
 					IPOINT_BEFORE,
 					(AFUNPTR)m2r_xfer_opw,
 					IARG_FAST_ANALYSIS_CALL,
@@ -5281,87 +5460,87 @@ ins_inspect(INS ins)
 			if (reg_base == REG_INVALID() &&
 					reg_indx == REG_INVALID()) {
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* clear */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r_clrl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32,
 						REG32_INDX(reg_dst),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* clear */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r_clrw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32,
 						REG16_INDX(reg_dst),
-						IARG_END);
+						IARG_END);}
 			}
 			/* base register exists; no index register */
 			if (reg_base != REG_INVALID() &&
 					reg_indx == REG_INVALID()) {
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_base),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_base),
-						IARG_END);
+						IARG_END);}
 			}
 			/* index register exists; no base register */
 			if (reg_base == REG_INVALID() &&
 					reg_indx != REG_INVALID()) {
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opl,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_indx),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* propagate tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)r2r_xfer_opw,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_indx),
-						IARG_END);
+						IARG_END);}
 			}
 			/* base and index registers exist */
 			if (reg_base != REG_INVALID() &&
 					reg_indx != REG_INVALID()) {
 				/* 32-bit operands */
-				if (REG_is_gr32(reg_dst))
+				if (REG_is_gr32(reg_dst)){
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_lea_r2r_opl,
 						IARG_FAST_ANALYSIS_CALL,
@@ -5369,11 +5548,11 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_base),
 					IARG_UINT32, REG32_INDX(reg_indx),
-						IARG_END);
+						IARG_END);}
 				/* 16-bit operands */
-				else
+				else{
 					/* propagate the tag accordingly */
-					INS_InsertCall(ins,
+					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
 						(AFUNPTR)_lea_r2r_opw,
 						IARG_FAST_ANALYSIS_CALL,
@@ -5381,7 +5560,7 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_base),
 					IARG_UINT32, REG16_INDX(reg_indx),
-						IARG_END);
+						IARG_END);}
 			}
 
 			/* done */

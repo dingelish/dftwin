@@ -137,6 +137,11 @@ typedef struct {
 	size_t	dflact;                 /* default instrumentation predicate */
 } ins_desc_t;
 
+typedef struct {
+	unsigned long insaddr;
+	FILE *logfile;
+} thread_local;
+
 
 /* libdft API */
 int	libdft_init();
@@ -156,4 +161,12 @@ size_t	REG8_INDX(REG);
 
 int libdft_part_init();
 void set_logfile(FILE* real_log);
+
+struct moditem{
+	char name[100];
+	unsigned long base_address;
+	unsigned long size;
+};
+VOID find_module_list(moditem * mi,int * total,unsigned long  fsbase);
+VOID update_modhash();
 #endif /* __LIBDFT_API_H__ */

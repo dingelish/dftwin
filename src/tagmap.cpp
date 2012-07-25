@@ -75,7 +75,7 @@ extern FILE *inner_logfile;
 # define MAP_ANONYMOUS  0x20            /* Don't use a file.  */
 
 #define MAP_FAILED	((void *) -1)
-
+//#define MYDEBUG
 #ifdef MYDEBUG
 #define debugout(op, pos, len) \
     fprintf(inner_logfile, "%s %08X %d\n", op, pos, len);

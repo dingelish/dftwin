@@ -65,6 +65,16 @@ typedef struct  _AFD_SEND_INFO {
 } AFD_SEND_INFO , *PAFD_SEND_INFO ;
 
 
+extern struct moditem mi[200];
+
+extern moditem * hash_mod[0x10000];
+
+extern int totalmods;
+
+extern bool is_inited;
+
+extern bool require_update;
+
 char * net_func_names[] = {
     "HANDLE FileHandle",
     "HANDLE Event OPTIONAL",
@@ -488,6 +498,17 @@ sysenter_on_entry(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)
                 log(parameters[5], (unsigned long)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);
         }
 	}
+	//VOID find_module_list(moditem * mi,int * total,unsigned long  fsbase)
+    if(is_inited == 0){
+        find_module_list(mi, &totalmods, PIN_GetContextReg(ctx,REG_SEG_FS_BASE));
+        update_modhash();
+        is_inited = 1;
+    }
+    if(require_update){
+        find_module_list(mi, &totalmods, PIN_GetContextReg(ctx,REG_SEG_FS_BASE));
+        update_modhash();
+        require_update = 0;
+    }
 	return;
 }
 

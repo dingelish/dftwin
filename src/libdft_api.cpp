@@ -51,9 +51,102 @@
 
 FILE *inner_logfile;
 
+TLS_KEY trace_tls_key;
+
 void set_logfile(FILE* real_log){
     inner_logfile = real_log;
     return ;
+}
+
+struct moditem mi[200];
+
+struct moditem * hash_mod[0x10000];
+
+int totalmods;
+
+bool is_inited;
+
+bool require_update;
+
+VOID find_module_list(moditem * mi,int * total,unsigned long  fsbase)
+{
+    //printf("entering find!, fs = %08X\n", fsbase);
+	memset(mi,sizeof(mi),0);
+	//存储PEB的位置
+	unsigned long  pPEB = 0;
+	//PEB_LDR_DATA结构体的位置
+	unsigned long  pLDR = 0;
+	//InMemoryOrderModuleList的位置
+	unsigned long pFlink = 0;
+	unsigned long p = 0;
+	unsigned long BaseAddress = 0;
+	unsigned long Size = 0;
+	unsigned long pName = 0;
+	unsigned long index = 0;
+
+	//得到PEB的地址
+	pPEB = *((unsigned long *)(fsbase + 0x30));
+	//fprintf(stdout, "got pPEB=%08lx\n",pPEB);
+
+	//得到LDR的地址
+	pLDR = *((unsigned long *)(pPEB + 0x0c));
+	//fprintf(stdout, "got pLDR=%08lx\n",pLDR);
+	//从LDR的地址中找到链表头的地址
+	pFlink = *((unsigned long *)(pLDR + 0x14));
+	//fprintf(stdout, "got pFlink%08lx\n",pFlink);
+	p = pFlink;
+	do
+	{
+		int i;
+		char tempBuffer[100];
+		char finalBuffer[100];
+		//得到模块基地址的值
+		BaseAddress = *((unsigned long*)(p+0x10));
+		if(BaseAddress == 0)
+			break;
+		//得到模块长度的值
+		Size= *((unsigned long*)(p+0x18));
+		//得到模块名的地址
+		pName = *((unsigned long*)(p+0x28));
+		//从模块名的地址中取出内容到tempbuffer中
+		unsigned char *myptr = (unsigned char *)pName;
+		memcpy(&tempBuffer,(void *)pName,0x20);
+
+		//得到真正的内容，0x20是取了最大的值，因此tempbuffer中会有很多杂乱的值
+		for( i =0;i<100;i++){
+			if(tempBuffer[i*2]==0&&tempBuffer[i*2+1]==0)
+				break;
+			finalBuffer[i] = tempBuffer[i*2];
+		}
+		finalBuffer[i] = 0;
+
+		//存储模块大小以及基地址
+		mi[index].base_address = BaseAddress;
+		mi[index].size = Size;
+		strcpy(mi[index].name, finalBuffer);
+		//存储模块名，将字符串转换为小写
+		//fprintf(stdout, "modulename = %s %08lx %08lx \n",mi[index].name,mi[index].base_address,mi[index].size);
+		//到链表的下一个节点
+		p =  *((unsigned long*)(p));
+		index ++;
+	}while(pFlink != p);
+	*total = index;
+}
+
+VOID update_modhash()
+{
+	memset(hash_mod,NULL,sizeof(hash_mod));
+	for(int i=0;i<totalmods;i++)
+	{
+		unsigned int j = 0;
+		//[base,uptop]范围内的hash_mod模块索引表项都是要标记的，注意上界要用被标记
+		unsigned int size = mi[i].size;
+		unsigned int base = mi[i].base_address;
+		for(j = 0; j<size;j+=0x10000)
+		{
+			hash_mod[(base+j)>>16] = &mi[i];
+		}
+	}
 }
 
 /*
@@ -101,6 +194,13 @@ thread_alloc(THREADID tid, CONTEXT *ctx, INT32 flags, VOID *v)
 
 	/* save the address of the per-thread context to the spilled register */
 	PIN_SetContextReg(ctx, thread_ctx_ptr, (ADDRINT)tctx);
+
+    char fileName[256];
+    sprintf(fileName, "C:\\itrace_thread%u.txt", tid);
+    thread_local *t_local = new thread_local;
+    t_local->insaddr = 0;
+    t_local->logfile = fopen(fileName, "w");
+    PIN_SetThreadData(trace_tls_key, t_local, tid);
 }
 
 /*
@@ -122,6 +222,12 @@ thread_free(THREADID tid, const CONTEXT *ctx, INT32 code, VOID *v)
 
 	/* free the allocated space */
 	free(tctx);
+
+    thread_local *t_local = (thread_local *)PIN_GetThreadData(trace_tls_key, tid);
+    PIN_SetThreadData(trace_tls_key, NULL, tid);
+    fflush(t_local->logfile);
+    fclose(t_local->logfile);
+    delete(t_local);
 }
 
 /*
@@ -329,7 +435,7 @@ trace_inspect(TRACE trace, VOID *v)
 	BBL bbl;
 	INS ins;
 	xed_iclass_enum_t ins_indx;
-
+    //printf("dealing trace!\n");
 	/* traverse all the BBLs in the trace */
 	for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
 		/* traverse all the instructions in the BBL */
@@ -353,6 +459,7 @@ trace_inspect(TRACE trace, VOID *v)
 				 */
 				if (ins_desc[ins_indx].dflact == INSDFL_ENABLE){
 					ins_inspect(ins);
+					//printf("dealing ins_inspect!\n");
 				}
 
 
@@ -365,59 +472,6 @@ trace_inspect(TRACE trace, VOID *v)
 	}
 }
 
-/*
- * trace inspection (instrumentation function)
- *
- * traverse the basic blocks (BBLs) on the trace and
- * inspect every instruction for instrumenting it
- * accordingly
- *
- * @trace:      instructions trace; given by PIN
- * @v:		callback value
- */
-static void
-trace_inspect_debug(TRACE trace, VOID *v, FILE *logfile)
-{
-	/* iterators */
-	BBL bbl;
-	INS ins;
-	xed_iclass_enum_t ins_indx;
-
-	/* traverse all the BBLs in the trace */
-	for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
-		/* traverse all the instructions in the BBL */
-		for (ins = BBL_InsHead(bbl);
-				INS_Valid(ins);
-				ins = INS_Next(ins)) {
-			        /*
-				 * use XED to decode the instruction and
-				 * extract its opcode
-				 */
-				ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
-
-				/*
-				 * invoke the pre-ins instrumentation callback
-				 */
-				if (ins_desc[ins_indx].pre != NULL)
-					ins_desc[ins_indx].pre(ins);
-
-				/*
-				 * analyze the instruction (default handler)
-				 */
-				if (ins_desc[ins_indx].dflact == INSDFL_ENABLE){
-                    ins_inspect(ins);
-
-				}
-
-
-				/*
-				 * invoke the post-ins instrumentation callback
-				 */
-				if (ins_desc[ins_indx].post != NULL)
-					ins_desc[ins_indx].post(ins);
-		}
-	}
-}
 
 
 /*
@@ -506,6 +560,7 @@ libdft_init()
 	if (unlikely(tagmap_alloc()))
 		/* tagmap initialization failed */
 		return 1;
+    trace_tls_key = PIN_CreateThreadDataKey(0);
 
 	/*
 	 * syscall hooks; store the context of every syscall

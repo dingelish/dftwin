@@ -37,6 +37,7 @@
 #include "branch_pred.h"
 #include "pin.H"
 #include "libdft_api.h"
+#include "libdasm.h"
 #include "tagmap.h"
 #include "process.h"
 /* thread context */
@@ -492,7 +493,8 @@ sysenter_on_entry(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)
 	if(syscall_nr == NETSYSCALL){
 		unsigned long *reg_esp = (unsigned long *)PIN_GetContextReg(ctx, REG_ESP);
 		unsigned long *parameters = reg_esp+2;
-		if(parameters[5] == IOCTL_AFD_SEND || parameters[5] == IOCTL_AFD_SEND_DATAGRAM){
+//		if(parameters[5] == IOCTL_AFD_SEND || parameters[5] == IOCTL_AFD_SEND_DATAGRAM){
+        if(parameters[5] == IOCTL_AFD_SEND){
             PAFD_SEND_INFO		pAfdTcpInfo			= (PAFD_SEND_INFO)parameters[6];
             if(pAfdTcpInfo->BufferArray->len > 1)
                 log(parameters[5], (unsigned long)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);
@@ -519,13 +521,13 @@ sysenter_on_exit(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)
 	if(syscall_nr == NETSYSCALL){
 		unsigned long *reg_esp = (unsigned long *)PIN_GetContextReg(ctx, REG_ESP);
 		unsigned long *parameters = reg_esp+2;
-        if(parameters[5] == IOCTL_AFD_RECV || parameters[5] == IOCTL_AFD_RECV_DATAGRAM){
+//        if(parameters[5] == IOCTL_AFD_RECV || parameters[5] == IOCTL_AFD_RECV_DATAGRAM){
+        if(parameters[5] == IOCTL_AFD_RECV){
             PAFD_SEND_INFO		pAfdTcpInfo			= (PAFD_SEND_INFO)parameters[6];
             if(pAfdTcpInfo->BufferArray->len > 1)
                 log(parameters[5], (unsigned long)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);
                 tagmap_setn((size_t)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);
         }
-
 	}
 	return;
 }
@@ -587,6 +589,14 @@ int
 main(int argc, char **argv)
 {
 	/* initialize symbol processing */
+
+    char data[100] = "\x83\x7d\x08\x01\x00";
+
+	INSTRUCTION inst;
+	char tempstr[100];
+	get_instruction(&inst, (BYTE*) &data, MODE_32);
+	get_instruction_string(&inst, FORMAT_INTEL, 0, tempstr, 100);
+	printf("%s\n", tempstr);
 
 	PIN_InitSymbols();
 

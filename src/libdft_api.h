@@ -140,6 +140,7 @@ typedef struct {
 typedef struct {
 	unsigned long insaddr;
 	FILE *logfile;
+	char binary[16];
 } thread_local;
 
 

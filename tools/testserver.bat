@@ -1,1 +1,1 @@
-..\..\..\..\..\pin.bat -t dftwin.dll -- server.exe
+..\..\..\..\..\pin.bat -t dftwin.dll -- server2.exe

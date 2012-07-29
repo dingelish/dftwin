@@ -45,10 +45,12 @@
 #include <cstring>
 
 #include "pin.H"
+#include "libdasm.h"
 #include "libdft_api.h"
 #include "libdft_core.h"
 #include "tagmap.h"
 #include "branch_pred.h"
+
 
 typedef unsigned char uint8_t;
 typedef unsigned int uint32_t;
@@ -77,19 +79,36 @@ FILE *GetOutputFile() {
 unsigned long getins(){
     thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
 //    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
-    return (((thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId())) -> insaddr);
+    return (templocal -> insaddr);
+}
+char * getbin(){
+    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+//    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
+//    for(int i = 0; i < 8; i ++){printf("%02X ", templocal->binary[i]); printf("\n");}
+    return templocal -> binary;
 }
 void setins(INS ins){
     thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
     t_local->insaddr = INS_Address(ins);
+    memcpy(t_local->binary, (unsigned char *)t_local->insaddr, 16);
+    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
     PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
 }
 #define KEYDFTTRACE
 #ifdef KEYDFTTRACE
+#define OUTADDR(addr, value) \
+    fprintf(GetOutputFile(), "%s\t%08X\n", addr, value);
 #define KEYTRACE0 \
-    {moditem *entry = hash_mod[getins()>>16]; if(entry == NULL) require_update = 1; fprintf(GetOutputFile(), "%s\t%08X\n",entry->name, getins());}
-//    fprintf(GetOutputFile(), "%08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str())
-
+    {\
+        moditem *entry = hash_mod[getins()>>16]; \
+        if(entry == NULL) require_update = 1; \
+        INSTRUCTION inst; \
+        char buff[100]; \
+        get_instruction(&inst, (BYTE *)getbin(), MODE_32); \
+        get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);\
+        fprintf(GetOutputFile(), "%s\t%08X\t%s\n",entry->name, getins(), buff);\
+        fflush(GetOutputFile());\
+    }
 
 #define KEYTRACE \
     if(src_tag)KEYTRACE0;
@@ -105,6 +124,7 @@ void setins(INS ins){
 #define KEYTRACE1
 #define KEYTRACE2
 #define KEYTRACE3
+#define OUTADDR(addr, value)
 #endif
 
 //#define FULLDFTTRACE
@@ -170,7 +190,8 @@ _movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-    KEYTRACE;
+    if(MAP_8H_16[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8H_16[src_tag];
@@ -194,7 +215,8 @@ _movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	/* temporary tag value */
 	size_t src_tag =
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-    KEYTRACE;
+    if(MAP_8L_16[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
@@ -217,7 +239,8 @@ _movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
-    KEYTRACE;
+    if(MAP_8H_32[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8H_32[src_tag];
 }
@@ -239,7 +262,8 @@ _movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
-    KEYTRACE;
+    if(MAP_8L_32[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
@@ -288,7 +312,8 @@ _movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-    KEYTRACE;
+    if(MAP_8H_16[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | MAP_8L_16[src_tag];
@@ -313,7 +338,8 @@ _movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	/* temporary tag value */
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
-    KEYTRACE;
+    if(MAP_8L_32[src_tag])
+        KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = MAP_8L_32[src_tag];
 }
@@ -480,6 +506,7 @@ _movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
     KEYTRACE;
+ //   KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) | src_tag;
@@ -505,6 +532,7 @@ _movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	size_t src_tag =
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
     KEYTRACE;
+ //   KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -529,6 +557,7 @@ _movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
     KEYTRACE;
+ //   KEYTRACE0;
 	/* update the destination (xfer) */
 	thread_ctx->vcpu.gpr[dst] = src_tag;
 }
@@ -557,10 +586,13 @@ _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
 	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
 
+    if(thread_ctx->vcpu.gpr[src] | thread_ctx->vcpu.gpr[7])
+        KEYTRACE0;
+
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[src];
-    KEYTRACE2;
+
 
 	/* compare the dst and src values */
 	return (dst_val == src_val);
@@ -586,10 +618,12 @@ _cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[7] =
 		thread_ctx->vcpu.gpr[8];
 
+    if(thread_ctx->vcpu.gpr[dst] | thread_ctx->vcpu.gpr[7])
+        KEYTRACE0;
+
 	/* update */
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[src];
-    KEYTRACE2;
 }
 
 /*
@@ -681,13 +715,12 @@ _cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
 
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
-		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
-		VCPU_MASK32;
+		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) & VCPU_MASK32;
 
 	/* compare the dst and src values; the original values the tag bits */
 
 //	KEYTRACE2;
-    if(thread_ctx->vcpu.gpr[7])
+    if(thread_ctx->vcpu.gpr[7] | thread_ctx->vcpu.gpr[8])
         KEYTRACE0;
 	return (dst_val == *(uint32_t *)src);
 }
@@ -719,7 +752,9 @@ _cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-    KEYTRACE2;
+    if(((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
+		VIRT2BIT(dst)))
+        KEYTRACE0;
 }
 
 /*
@@ -745,6 +780,10 @@ _cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)
 	/* save the tag value of dst in the scratch register */
 	thread_ctx->vcpu.gpr[8] =
 		thread_ctx->vcpu.gpr[7];
+
+    if(((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
+		VCPU_MASK16))
+		KEYTRACE0;
 
 	/* update */
 	thread_ctx->vcpu.gpr[7] =
@@ -784,7 +823,9 @@ _cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
 		VIRT2BIT(dst));
-    KEYTRACE2;
+    if(((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
+		VIRT2BIT(dst)))
+		KEYTRACE0;
 }
 
 /*
@@ -947,7 +988,7 @@ _xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
@@ -957,6 +998,10 @@ _xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		((tmp_tag >> 1) << VIRT2BIT(dst));
+
+    if((((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) << 1) &
+		(VCPU_MASK8 << 1)) | tmp_tag)
+		KEYTRACE0;
 }
 
 /*
@@ -978,7 +1023,7 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -987,6 +1032,9 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		(tmp_tag << VIRT2BIT(dst));
+
+    if(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8) | tmp_tag)
+        KEYTRACE0;
 }
 
 /*
@@ -1008,7 +1056,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -1019,6 +1067,10 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
 							      VIRT2BIT(dst))) |
 		((uint16_t)(tmp_tag) << VIRT2BIT(dst));
+
+    if(((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
+		VCPU_MASK16) | tmp_tag)
+		KEYTRACE0;
 }
 
 /*
@@ -1040,7 +1092,7 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -1050,6 +1102,9 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
 							      VIRT2BIT(dst))) |
 		((uint16_t)(tmp_tag) << VIRT2BIT(dst));
+
+    if(tmp_tag | (*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)))
+        KEYTRACE0;
 }
 
 /*
@@ -1070,7 +1125,7 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1078,6 +1133,9 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 		 (thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | (tmp_tag >> 1);
+
+    if(thread_ctx->vcpu.gpr[src] | tmp_tag)
+        KEYTRACE0;
 }
 
 /*
@@ -1098,7 +1156,7 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1106,6 +1164,9 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 	 (thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | (tmp_tag << 1);
+
+	 if(tmp_tag | ((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1))
+        KEYTRACE0;
 }
 
 /*
@@ -1126,7 +1187,6 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1134,6 +1194,9 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~(VCPU_MASK8 << 1)) | tmp_tag;
+
+    if(tmp_tag | (thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)))
+        KEYTRACE0;
 }
 
 /*
@@ -1154,7 +1217,6 @@ _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1162,6 +1224,9 @@ _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK8) | tmp_tag;
+
+    if(tmp_tag | (thread_ctx->vcpu.gpr[src] & VCPU_MASK8))
+        KEYTRACE0;
 }
 
 /*
@@ -1182,7 +1247,6 @@ _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
@@ -1190,6 +1254,8 @@ _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 
 	thread_ctx->vcpu.gpr[src] =
 		(thread_ctx->vcpu.gpr[src] & ~VCPU_MASK16) | tmp_tag;
+    if(tmp_tag | (thread_ctx->vcpu.gpr[src] & VCPU_MASK16))
+        KEYTRACE0;
 }
 
 /*
@@ -1211,7 +1277,6 @@ _xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1)) |
@@ -1221,6 +1286,9 @@ _xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		((tmp_tag >> 1) << VIRT2BIT(dst));
+    if(tmp_tag | (((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) << 1) &
+		(VCPU_MASK8 << 1)))
+		KEYTRACE0;
 }
 
 /*
@@ -1242,7 +1310,7 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
-    KEYTRACE3;
+
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK8) |
@@ -1251,6 +1319,10 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
 		(tmp_tag << VIRT2BIT(dst));
+
+    if(tmp_tag | ((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8))
+        KEYTRACE0;
+
 }
 
 /*
@@ -1272,7 +1344,6 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & VCPU_MASK16) |
@@ -1283,7 +1354,12 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
 							      VIRT2BIT(dst))) |
 		((uint16_t)(tmp_tag) < VIRT2BIT(dst));
+    if(tmp_tag | ((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
+		VCPU_MASK16))
+		KEYTRACE0;
+
 }
+
 
 /*
  * tag propagation (analysis function)
@@ -1304,7 +1380,6 @@ _xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
-    KEYTRACE3;
 	/* swap */
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -1314,6 +1389,9 @@ _xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & (LONG_MASK <<
 							      VIRT2BIT(dst))) |
 		((uint16_t)(tmp_tag) << VIRT2BIT(dst));
+    if(tmp_tag | (*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
+		VCPU_MASK32)
+		KEYTRACE0;
 }
 
 /*
@@ -1918,7 +1996,8 @@ r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	 thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |	 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
-    KEYTRACE1;
+    if((thread_ctx->vcpu.gpr[src] & VCPU_MASK8))
+        KEYTRACE0;
 }
 
 /*
@@ -1937,7 +2016,8 @@ r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1);
-    KEYTRACE1;
+    if((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)
+        KEYTRACE0;
 }
 
 /*
@@ -1955,7 +2035,8 @@ r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
-		KEYTRACE1;
+	if((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)))
+        KEYTRACE0;
 
 }
 
@@ -1975,7 +2056,8 @@ r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8);
-    KEYTRACE1;
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK8)
+        KEYTRACE0;
 }
 
 /*
@@ -1994,7 +2076,8 @@ r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16);
-		KEYTRACE1;
+    if(thread_ctx->vcpu.gpr[src] & VCPU_MASK16)
+        KEYTRACE0;
 }
 
 /*
@@ -2033,7 +2116,9 @@ m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
 		(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) << 1) &
 		(VCPU_MASK8 << 1));
-    KEYTRACE1;
+    if(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) << 1) &
+		(VCPU_MASK8 << 1))
+        KEYTRACE0;
 }
 
 /*
@@ -2053,7 +2138,8 @@ m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8);
-    KEYTRACE1;
+    if(((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8))
+        KEYTRACE0;
 }
 
 /*
@@ -2074,7 +2160,9 @@ m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-    KEYTRACE1;
+    if(((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
+		VCPU_MASK16))
+		KEYTRACE0;
 }
 
 /*
@@ -2249,7 +2337,8 @@ r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
 		VIRT2BIT(dst));
-    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+    if(((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) <<
+		VIRT2BIT(dst)))
         KEYTRACE0;
 }
 
@@ -2317,7 +2406,8 @@ r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
 							      VIRT2BIT(dst))) |
 		((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
 		VIRT2BIT(dst));
-    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+    if(((uint16_t)(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) <<
+		VIRT2BIT(dst)))
         KEYTRACE0;
 }
 
@@ -2338,7 +2428,8 @@ m2m_xfer_opw(ADDRINT dst, ADDRINT src)
 							      VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& WORD_MASK) << VIRT2BIT(dst);
-    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst)))){
+    if((((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
+		& WORD_MASK) << VIRT2BIT(dst)){
         KEYTRACE0;
     }
 }
@@ -2359,7 +2450,8 @@ m2m_xfer_opb(ADDRINT dst, ADDRINT src)
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(BYTE_MASK <<  VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& BYTE_MASK) << VIRT2BIT(dst);
-    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+    if((((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
+		& BYTE_MASK) << VIRT2BIT(dst))
         KEYTRACE0;
 }
 
@@ -2375,12 +2467,13 @@ m2m_xfer_opb(ADDRINT dst, ADDRINT src)
 static void PIN_FAST_ANALYSIS_CALL
 m2m_xfer_opl(ADDRINT dst, ADDRINT src)
 {
+    //OUTADDR("xfer_opl:src", src);
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
 							      VIRT2BIT(dst))) |
 		(((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))
 		& LONG_MASK) << VIRT2BIT(dst);
-    if(*((uint16_t *)(bitmap + VIRT2BYTE(dst))))
+    if((((*((uint16_t *)(bitmap + VIRT2BYTE(src)))) >> VIRT2BIT(src))& LONG_MASK) << VIRT2BIT(dst))
         KEYTRACE0;
 }
 
@@ -2727,7 +2820,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
 		VIRT2BIT(dst));
     unsigned int i;
     for(i = 0; i < 8; i ++){
-        if(thread_ctx->vcpu.gpr[i] & VCPU_MASK16){
+        if(thread_ctx->vcpu.gpr[i] & VCPU_MASK32){
             KEYTRACE0;
             break;
         }
@@ -3119,6 +3212,7 @@ ins_inspect(INS ins)
 			 * zeros; for earlier 32-bit IA-32 processors, the two
 			 * high order bytes are undefined.
 			 */
+			//KEYTRACE0;
 			if (INS_OperandIsImmediate(ins, OP_1) ||
 				(INS_OperandIsReg(ins, OP_1) &&
 				REG_is_seg(INS_OperandReg(ins, OP_1)))) {
@@ -3317,6 +3411,7 @@ ins_inspect(INS ins)
 
 				/* 32-bit operands */
 				if (REG_is_gr32(reg_dst)){
+				    //KEYTRACE0;
 					/* propagate the tag accordingly */
 					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4999,8 +5094,10 @@ ins_inspect(INS ins)
 			break;
 		/* movsd */
 		case XED_ICLASS_MOVSD:
+            //KEYTRACE0;
 			/* propagate the tag accordingly */
 			INS_InsertPredicatedCall(ins,
+			//INS_InsertPredicatedCall(ins,
 				IPOINT_BEFORE,
 				(AFUNPTR)m2m_xfer_opl,
 				IARG_FAST_ANALYSIS_CALL,

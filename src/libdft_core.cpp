@@ -73,8 +73,8 @@ extern bool is_inited;
 extern bool require_update;
 
 
-FILE *GetOutputFile() {
-    return ((thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId())) -> logfile;
+FILE *GetOutputFile(THREADID threadid) {
+    return ((thread_local *)PIN_GetThreadData(trace_tls_key, threadid)) -> logfile;
 }
 unsigned long getins(){
     thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
@@ -94,20 +94,27 @@ void setins(INS ins){
     //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
     PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
 }
+void clrins(){
+    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+    t_local->insaddr = 0;
+    memset(t_local->binary,0, 16);
+    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
+    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
+}
 #define KEYDFTTRACE
 #ifdef KEYDFTTRACE
 #define OUTADDR(addr, value) \
     fprintf(GetOutputFile(), "%s\t%08X\n", addr, value);
 #define KEYTRACE0 \
     {\
-        moditem *entry = hash_mod[getins()>>16]; \
+        moditem *entry = hash_mod[ip1>>16]; \
         if(entry == NULL) require_update = 1; \
         INSTRUCTION inst; \
         char buff[100]; \
-        get_instruction(&inst, (BYTE *)getbin(), MODE_32); \
+        get_instruction(&inst, (BYTE *)ip1, MODE_32); \
         get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);\
-        fprintf(GetOutputFile(), "%s\t%08X\t%s\n",entry->name, getins(), buff);\
-        fflush(GetOutputFile());\
+        fprintf(GetOutputFile(threadid), "%s\t%08X\t%s\n",entry->name, ip1, buff);\
+        fflush(GetOutputFile(threadid));\
     }
 
 #define KEYTRACE \
@@ -150,7 +157,47 @@ static uint32_t	MAP_8L_32[] = {0, VCPU_MASK32};
 
 /* fast tag extension (helper); [0] -> 0, [2] -> VCPU_MASK32 */
 static uint32_t	MAP_8H_32[] = {0, 0, VCPU_MASK32};
-
+/*
+ * tag checking (analysis function)
+ *
+ * extend the tag as follows: t[upper(eax)] = t[ax]
+ *
+ * NOTE: special case for the CWDE instruction
+ *
+ * @thread_ctx:	the thread context
+ */
+static void PIN_FAST_ANALYSIS_CALL
+check_register_32bit(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
+{
+	/* temporary tag value */
+	size_t src_tag = thread_ctx->vcpu.gpr[src];
+	if(src_tag)
+        KEYTRACE0;
+}
+static void PIN_FAST_ANALYSIS_CALL
+check_register_16bit(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
+{
+	/* temporary tag value */
+	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
+	if(src_tag)
+        KEYTRACE0;
+}
+static void PIN_FAST_ANALYSIS_CALL
+check_memory_32bit(thread_ctx_t *thread_ctx, ADDRINT addr, THREADID threadid, ADDRINT ip1)
+{
+	/* temporary tag value */
+	size_t src_tag = (bitmap[VIRT2BYTE(addr)] >> VIRT2BIT(addr));
+	if(src_tag)
+        KEYTRACE0;
+}
+static void PIN_FAST_ANALYSIS_CALL
+check_memory_16bit(thread_ctx_t *thread_ctx, ADDRINT addr, THREADID threadid, ADDRINT ip1)
+{
+	/* temporary tag value */
+	size_t src_tag = (bitmap[VIRT2BYTE(addr)] >> VIRT2BIT(addr)) & VCPU_MASK16;
+	if(src_tag)
+        KEYTRACE0;
+}
 /*
  * tag propagation (analysis function)
  *
@@ -161,7 +208,7 @@ static uint32_t	MAP_8H_32[] = {0, 0, VCPU_MASK32};
  * @thread_ctx:	the thread context
  */
 static void PIN_FAST_ANALYSIS_CALL
-_cwde(thread_ctx_t *thread_ctx)
+_cwde(thread_ctx_t *thread_ctx, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[7] & VCPU_MASK16;
@@ -186,7 +233,7 @@ _cwde(thread_ctx_t *thread_ctx)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
@@ -210,7 +257,7 @@ _movsx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -235,7 +282,7 @@ _movsx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
@@ -258,7 +305,7 @@ _movsx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
@@ -281,7 +328,7 @@ _movsx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
@@ -307,7 +354,7 @@ _movsx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -333,7 +380,7 @@ _movsx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -357,13 +404,13 @@ _movsx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-    KEYTRACE;
+    KEYTRACE0;
 	/* extension; 16-bit to 32-bit */
 	src_tag |= (src_tag << 2);
 
@@ -384,7 +431,7 @@ _movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -408,7 +455,7 @@ _movzx_r2r_opwb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -432,7 +479,7 @@ _movzx_r2r_opwb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -455,7 +502,7 @@ _movzx_r2r_oplb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
@@ -477,7 +524,7 @@ _movzx_r2r_oplb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
@@ -500,7 +547,7 @@ _movzx_r2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -526,7 +573,7 @@ _movzx_m2r_opwb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -550,7 +597,7 @@ _movzx_m2r_oplb(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t src_tag =
@@ -580,7 +627,7 @@ _movzx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  */
 static ADDRINT PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
-							uint32_t src_val)
+							uint32_t src_val, THREADID threadid, ADDRINT ip1)
 {
 	/* save the tag value of dst in the scratch register */
 	thread_ctx->vcpu.gpr[8] =
@@ -612,7 +659,7 @@ _cmpxchg_r2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, uint32_t src,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* restore the tag value from the scratch register */
 	thread_ctx->vcpu.gpr[7] =
@@ -644,7 +691,7 @@ _cmpxchg_r2r_opl_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  */
 static ADDRINT PIN_FAST_ANALYSIS_CALL
 _cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,
-						uint16_t src_val)
+						uint16_t src_val, THREADID threadid, ADDRINT ip1)
 {
 	/* save the tag value of dst in the scratch register */
 	thread_ctx->vcpu.gpr[8] =
@@ -676,7 +723,7 @@ _cmpxchg_r2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, uint32_t src,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* restore the tag value from the scratch register */
 	thread_ctx->vcpu.gpr[7] =
@@ -707,7 +754,7 @@ _cmpxchg_r2r_opw_slow(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static ADDRINT PIN_FAST_ANALYSIS_CALL
-_cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
+_cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* save the tag value of dst in the scratch register */
 	thread_ctx->vcpu.gpr[8] =
@@ -740,7 +787,7 @@ _cmpxchg_m2r_opl_fast(thread_ctx_t *thread_ctx, uint32_t dst_val, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+_cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* restore the tag value from the scratch register */
 	thread_ctx->vcpu.gpr[7] =
@@ -775,7 +822,7 @@ _cmpxchg_r2m_opl_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source memory address
  */
 static ADDRINT PIN_FAST_ANALYSIS_CALL
-_cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)
+_cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* save the tag value of dst in the scratch register */
 	thread_ctx->vcpu.gpr[8] =
@@ -811,7 +858,7 @@ _cmpxchg_m2r_opw_fast(thread_ctx_t *thread_ctx, uint16_t dst_val, ADDRINT src)
  * @res:	restore register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+_cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* restore the tag value from the scratch register */
 	thread_ctx->vcpu.gpr[7] =
@@ -842,7 +889,7 @@ _cmpxchg_r2m_opw_slow(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -870,7 +917,7 @@ _xchg_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -898,7 +945,7 @@ _xchg_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -926,7 +973,7 @@ _xchg_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -954,7 +1001,7 @@ _xchg_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
@@ -984,7 +1031,7 @@ _xchg_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -1019,7 +1066,7 @@ _xchg_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -1052,7 +1099,7 @@ _xchg_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
@@ -1088,7 +1135,7 @@ _xchg_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
@@ -1121,7 +1168,7 @@ _xchg_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -1152,7 +1199,7 @@ _xadd_r2r_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -1183,7 +1230,7 @@ _xadd_r2r_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -1213,7 +1260,7 @@ _xadd_r2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -1243,7 +1290,7 @@ _xadd_r2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+_xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
@@ -1273,7 +1320,7 @@ _xadd_r2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & (VCPU_MASK8 << 1);
@@ -1306,7 +1353,7 @@ _xadd_m2r_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK8;
@@ -1340,7 +1387,7 @@ _xadd_m2r_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst] & VCPU_MASK16;
@@ -1376,7 +1423,7 @@ _xadd_m2r_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-_xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+_xadd_m2r_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[dst];
@@ -1411,7 +1458,7 @@ static void PIN_FAST_ANALYSIS_CALL
 _lea_r2r_opw(thread_ctx_t *thread_ctx,
 		uint32_t dst,
 		uint32_t base,
-		uint32_t index)
+		uint32_t index, THREADID threadid, ADDRINT ip1)
 {
 	/* update the destination */
 	thread_ctx->vcpu.gpr[dst] =
@@ -1438,7 +1485,7 @@ static void PIN_FAST_ANALYSIS_CALL
 _lea_r2r_opl(thread_ctx_t *thread_ctx,
 		uint32_t dst,
 		uint32_t base,
-		uint32_t index)
+		uint32_t index, THREADID threadid, ADDRINT ip1)
 {
 	/* update the destination */
 	thread_ctx->vcpu.gpr[dst] =
@@ -1458,7 +1505,7 @@ _lea_r2r_opl(thread_ctx_t *thread_ctx,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src)
+r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
@@ -1479,7 +1526,7 @@ r2r_ternary_opb_u(thread_ctx_t *thread_ctx, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src)
+r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
@@ -1502,7 +1549,7 @@ r2r_ternary_opb_l(thread_ctx_t *thread_ctx, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
+r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag = thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
@@ -1526,7 +1573,7 @@ r2r_ternary_opw(thread_ctx_t *thread_ctx, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src)
+r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
     KEYTRACE2;
 	/* update the destinations */
@@ -1547,7 +1594,7 @@ r2r_ternary_opl(thread_ctx_t *thread_ctx, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src)
+m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag =
@@ -1573,7 +1620,7 @@ m2r_ternary_opb(thread_ctx_t *thread_ctx, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src)
+m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag =
@@ -1600,7 +1647,7 @@ m2r_ternary_opw(thread_ctx_t *thread_ctx, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)
+m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* temporary tag value */
 	size_t tmp_tag =
@@ -1623,7 +1670,7 @@ m2r_ternary_opl(thread_ctx_t *thread_ctx, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1;
@@ -1642,7 +1689,7 @@ r2r_binary_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1;
@@ -1661,7 +1708,7 @@ r2r_binary_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1);
@@ -1680,7 +1727,7 @@ r2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK8;
@@ -1699,7 +1746,7 @@ r2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		thread_ctx->vcpu.gpr[src] & VCPU_MASK16;
@@ -1718,11 +1765,11 @@ r2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |= thread_ctx->vcpu.gpr[src];
 	KEYTRACE2;
-}
+ }
 
 /*
  * tag propagation (analysis function)
@@ -1736,7 +1783,7 @@ r2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		((bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8) << 1;
@@ -1757,7 +1804,7 @@ m2r_binary_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(bitmap[VIRT2BYTE(src)] >> VIRT2BIT(src)) & VCPU_MASK8;
@@ -1778,7 +1825,7 @@ m2r_binary_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -1800,7 +1847,7 @@ m2r_binary_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] |=
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) & VCPU_MASK32;
@@ -1821,7 +1868,7 @@ m2r_binary_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	bitmap[VIRT2BYTE(dst)] |=
 		((thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1)) >> 1)<< VIRT2BIT(dst);
@@ -1842,7 +1889,7 @@ r2m_binary_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	bitmap[VIRT2BYTE(dst)] |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << VIRT2BIT(dst);
@@ -1863,7 +1910,7 @@ r2m_binary_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK16) << VIRT2BIT(dst);
@@ -1884,7 +1931,7 @@ r2m_binary_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_binary_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_binary_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) |=
 		(thread_ctx->vcpu.gpr[src] & VCPU_MASK32) << VIRT2BIT(dst);
@@ -1992,7 +2039,7 @@ r_clrb_l(thread_ctx_t *thread_ctx, uint32_t reg)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	 thread_ctx->vcpu.gpr[dst] =
 		 (thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |	 ((thread_ctx->vcpu.gpr[src] & VCPU_MASK8) << 1);
@@ -2011,7 +2058,7 @@ r2r_xfer_opb_ul(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -2031,7 +2078,7 @@ r2r_xfer_opb_lu(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |(thread_ctx->vcpu.gpr[src] & (VCPU_MASK8 << 1));
@@ -2051,7 +2098,7 @@ r2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -2071,7 +2118,7 @@ r2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -2091,7 +2138,7 @@ r2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
+r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		thread_ctx->vcpu.gpr[src];
@@ -2110,7 +2157,7 @@ r2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~(VCPU_MASK8 << 1)) |
@@ -2133,7 +2180,7 @@ m2r_xfer_opb_u(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK8) |
@@ -2154,7 +2201,7 @@ m2r_xfer_opb_l(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(thread_ctx->vcpu.gpr[dst] & ~VCPU_MASK16) |
@@ -2177,7 +2224,7 @@ m2r_xfer_opw(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src)
+m2r_xfer_opl(thread_ctx_t *thread_ctx, uint32_t dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	thread_ctx->vcpu.gpr[dst] =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
@@ -2202,7 +2249,7 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_xfer_opbn(thread_ctx_t *thread_ctx,
 		ADDRINT dst,
 		ADDRINT count,
-		ADDRINT eflags)
+		ADDRINT eflags, THREADID threadid, ADDRINT ip1)
 {
 	if (likely(EFLAGS_DF(eflags) == 0)) {
 		/* EFLAGS.DF = 0 */
@@ -2243,7 +2290,7 @@ r2m_xfer_opbn(thread_ctx_t *thread_ctx,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
@@ -2265,7 +2312,7 @@ r2m_xfer_opb_u(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_xfer_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_xfer_opb_l(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	bitmap[VIRT2BYTE(dst)] =
 		(bitmap[VIRT2BYTE(dst)] & ~(BYTE_MASK << VIRT2BIT(dst))) |
@@ -2290,7 +2337,7 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_xfer_opwn(thread_ctx_t *thread_ctx,
 		ADDRINT dst,
 		ADDRINT count,
-		ADDRINT eflags)
+		ADDRINT eflags, THREADID threadid, ADDRINT ip1)
 {
 	if (likely(EFLAGS_DF(eflags) == 0)) {
 		/* EFLAGS.DF = 0 */
@@ -2330,7 +2377,7 @@ r2m_xfer_opwn(thread_ctx_t *thread_ctx,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_xfer_opw(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
@@ -2359,7 +2406,7 @@ static void PIN_FAST_ANALYSIS_CALL
 r2m_xfer_opln(thread_ctx_t *thread_ctx,
 		ADDRINT dst,
 		ADDRINT count,
-		ADDRINT eflags)
+		ADDRINT eflags, THREADID threadid, ADDRINT ip1)
 {
 	if (likely(EFLAGS_DF(eflags) == 0)) {
 		/* EFLAGS.DF = 0 */
@@ -2399,7 +2446,7 @@ r2m_xfer_opln(thread_ctx_t *thread_ctx,
  * @src:	source register index (VCPU)
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
+r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(LONG_MASK <<
@@ -2421,7 +2468,7 @@ r2m_xfer_opl(thread_ctx_t *thread_ctx, ADDRINT dst, uint32_t src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2m_xfer_opw(ADDRINT dst, ADDRINT src)
+m2m_xfer_opw(ADDRINT dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(WORD_MASK <<
@@ -2444,7 +2491,7 @@ m2m_xfer_opw(ADDRINT dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2m_xfer_opb(ADDRINT dst, ADDRINT src)
+m2m_xfer_opb(ADDRINT dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
 		(*((uint16_t *)(bitmap + VIRT2BYTE(dst))) & ~(BYTE_MASK <<  VIRT2BIT(dst))) |
@@ -2465,7 +2512,7 @@ m2m_xfer_opb(ADDRINT dst, ADDRINT src)
  * @src:	source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2m_xfer_opl(ADDRINT dst, ADDRINT src)
+m2m_xfer_opl(ADDRINT dst, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
     //OUTADDR("xfer_opl:src", src);
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
@@ -2511,7 +2558,7 @@ rep_predicate(BOOL first_iteration)
  * @src:	the source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
+m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* tagmap value */
 	uint16_t src_val = *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2576,7 +2623,7 @@ m2r_restore_opw(thread_ctx_t *thread_ctx, ADDRINT src)
  * @src:	the source memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
+m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src, THREADID threadid, ADDRINT ip1)
 {
 	/* tagmap value */
 	uint16_t src_val = *(uint16_t *)(bitmap + VIRT2BYTE(src));
@@ -2641,7 +2688,7 @@ m2r_restore_opl(thread_ctx_t *thread_ctx, ADDRINT src)
  * @dst:	the destination memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst)
+r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst, THREADID threadid, ADDRINT ip1)
 {
 	/* save DI */
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
@@ -2740,7 +2787,7 @@ r2m_save_opw(thread_ctx_t *thread_ctx, ADDRINT dst)
  * @dst:	the destination memory address
  */
 static void PIN_FAST_ANALYSIS_CALL
-r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
+r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst, THREADID threadid, ADDRINT ip1)
 {
 	/* save EDI */
 	*((uint16_t *)(bitmap + VIRT2BYTE(dst))) =
@@ -2836,7 +2883,7 @@ r2m_save_opl(thread_ctx_t *thread_ctx, ADDRINT dst)
  * @ins:	the instruction to be instrumented
  */
 void
-ins_inspect(INS ins)
+ins_inspect(const INS ins)
 {
 	/*
 	 * temporaries;
@@ -2850,7 +2897,7 @@ ins_inspect(INS ins)
     setins(ins);
 //    getins();
 //    fprintf(stdout, "before: %08X\t%s\n", INS_Address(ins), INS_Disassemble(ins).c_str());
-//    fprintf(stdout, "after : %08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str());
+//    fprintf(stdout, "after : %08X\n", getins());
     //printf("after ins_inspect!\n");
 	/* sanity check */
 	if (unlikely(ins_indx <= XED_ICLASS_INVALID ||
@@ -2934,6 +2981,8 @@ ins_inspect(INS ins)
 							REG32_INDX(reg_dst),
 							IARG_UINT32,
 							REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 					}
 				}
@@ -2975,6 +3024,8 @@ ins_inspect(INS ins)
 							REG16_INDX(reg_dst),
 								IARG_UINT32,
 							REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 								IARG_END);
 					}
 				}
@@ -3030,6 +3081,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
 							REG_is_Upper8(reg_src)){
@@ -3041,6 +3094,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if (REG_is_Lower8(reg_dst)){
 						/*
@@ -3056,6 +3111,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else
 						/*
@@ -3071,6 +3128,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					}
 				}
@@ -3096,6 +3155,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_dst)){
@@ -3107,6 +3168,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (upper) */
 				else if (REG_is_Upper8(reg_dst)){
@@ -3118,6 +3181,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (lower) */
 				else{
@@ -3129,6 +3194,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* 1st operand is memory */
@@ -3146,6 +3213,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_src)){
@@ -3157,6 +3226,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -3168,6 +3239,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (lower) */
 				else{
@@ -3179,6 +3252,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -3329,6 +3404,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_dst)){
@@ -3340,6 +3417,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
@@ -3354,6 +3433,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
 							REG_is_Upper8(reg_src)){
@@ -3365,6 +3446,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if (REG_is_Lower8(reg_dst)){
 						/*
@@ -3380,6 +3463,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else{
 						/*
@@ -3395,6 +3480,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 			}
@@ -3420,6 +3507,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_dst)){
@@ -3431,6 +3520,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (upper) */
 				else if (REG_is_Upper8(reg_dst)){
@@ -3442,6 +3533,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (lower) */
 				else{
@@ -3453,6 +3546,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* 1st operand is memory */
@@ -3470,6 +3565,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_src)){
@@ -3481,6 +3578,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -3492,6 +3591,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (lower) */
 				else{
@@ -3503,6 +3604,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -3548,6 +3651,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else{
@@ -3559,6 +3664,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/*
@@ -3582,6 +3689,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else{
@@ -3593,6 +3702,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -3614,6 +3725,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG8_INDX(REG_AH),
 				IARG_UINT32, REG8_INDX(REG_AL),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -3634,6 +3747,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG16_INDX(REG_DX),
 				IARG_UINT32, REG16_INDX(REG_AX),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -3652,6 +3767,8 @@ ins_inspect(INS ins)
 				(AFUNPTR)_cwde,
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -3672,6 +3789,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG32_INDX(REG_EDX),
 				IARG_UINT32, REG32_INDX(REG_EAX),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -3708,6 +3827,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else{
 					/* propagate the tag accordingly */
@@ -3718,6 +3839,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 				/* 32-bit & 16-bit operands */
@@ -3730,6 +3853,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands (upper 8-bit) */
 				else if (REG_is_Upper8(reg_src)){
@@ -3741,6 +3866,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands (lower 8-bit) */
 				else{
@@ -3752,6 +3879,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* 2nd operand is memory */
@@ -3769,6 +3898,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 16-bit operands */
 				else if (INS_MemoryWriteSize(ins) ==
@@ -3781,6 +3912,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands */
 				else{
@@ -3792,6 +3925,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -3830,6 +3965,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else{
 					/* propagate the tag accordingly */
@@ -3840,6 +3977,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 				/* 32-bit & 16-bit operands */
@@ -3852,6 +3991,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands (upper 8-bit) */
 				else if (REG_is_Upper8(reg_src)){
@@ -3863,6 +4004,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands (lower 8-bit) */
 				else{
@@ -3874,6 +4017,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* 2nd operand is memory */
@@ -3891,6 +4036,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 16-bit operands */
 				else if (INS_MemoryWriteSize(ins) ==
@@ -3903,6 +4050,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 32-bit & 8-bit operands */
 				else{
@@ -3914,6 +4063,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -3945,6 +4096,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -3958,6 +4111,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -3972,6 +4127,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -3991,6 +4148,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else if (REG_is_gr16(reg_src)){
@@ -4001,6 +4160,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -4011,6 +4172,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (lower) */
 				else{
@@ -4021,6 +4184,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -4049,6 +4214,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -4062,6 +4229,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -4076,6 +4245,8 @@ ins_inspect(INS ins)
 							IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);
 
 						/* done */
@@ -4095,6 +4266,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else if (REG_is_gr16(reg_src)){
@@ -4105,6 +4278,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -4115,6 +4290,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (lower) */
 				else{
@@ -4125,6 +4302,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 			}
@@ -4150,6 +4329,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);}
 					/* 16-bit operands */
 					else{
@@ -4161,6 +4342,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);}
 				}
 				/*
@@ -4184,6 +4367,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);}
 					/* 16-bit operands */
 					else{
@@ -4195,6 +4380,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 							IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 							IARG_END);}
 				}
 			}
@@ -4430,6 +4617,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, REG_EAX,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_REG_VALUE, reg_dst,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				/* propagate tag accordingly; slow path */
 					INS_InsertThenCall(ins,
@@ -4439,6 +4628,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 16-bit operands */
@@ -4452,6 +4643,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, REG_AX,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_REG_VALUE, reg_dst,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				/* propagate tag accordingly; slow path */
 					INS_InsertThenCall(ins,
@@ -4461,6 +4654,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 8-bit operands */
@@ -4484,6 +4679,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_REG_VALUE, REG_EAX,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				/* propagate tag accordingly; slow path */
 					INS_InsertThenCall(ins,
@@ -4493,6 +4690,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 16-bit operands */
@@ -4505,6 +4704,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_REG_VALUE, REG_AX,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				/* propagate tag accordingly; slow path */
 					INS_InsertThenCall(ins,
@@ -4514,6 +4715,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 8-bit operands */
@@ -4546,6 +4749,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, 8,
 					IARG_UINT32, REG32_INDX(reg_dst),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4554,6 +4759,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 					TRACEOUT; INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4562,6 +4769,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 					IARG_UINT32, 8,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 16-bit operands */
@@ -4574,6 +4783,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
@@ -4588,6 +4799,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
 						REG_is_Upper8(reg_src)){
@@ -4599,6 +4812,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if (REG_is_Lower8(reg_dst)){
 						/*
@@ -4614,6 +4829,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else{
 						/*
@@ -4629,6 +4846,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 			}
@@ -4653,6 +4872,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_dst)){
@@ -4664,6 +4885,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (upper) */
 				else if (REG_is_Upper8(reg_dst)){
@@ -4675,6 +4898,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (lower) */
 				else{
@@ -4686,6 +4911,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* 1st operand is memory */
@@ -4703,6 +4930,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_src)){
@@ -4714,6 +4943,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -4725,6 +4956,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands (lower) */
 				else{
@@ -4736,6 +4969,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -4764,6 +4999,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, 8,
 					IARG_UINT32, REG32_INDX(reg_dst),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4772,6 +5009,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4780,6 +5019,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_UINT32, 8,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 					INS_InsertCall(ins,
 						IPOINT_BEFORE,
@@ -4788,6 +5029,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);
 				}
 				/* 16-bit operands */
@@ -4800,6 +5043,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operands */
 				else if (REG_is_gr8(reg_dst)) {
@@ -4814,6 +5059,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if(REG_is_Upper8(reg_dst) &&
 						REG_is_Upper8(reg_src)){
@@ -4825,6 +5072,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else if (REG_is_Lower8(reg_dst)){
 						/*
@@ -4840,6 +5089,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 					else{
 						/*
@@ -4855,6 +5106,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_dst),
 						IARG_UINT32, REG8_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				}
 			}
@@ -4873,6 +5126,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else if (REG_is_gr16(reg_src)){
@@ -4884,6 +5139,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (upper) */
 				else if (REG_is_Upper8(reg_src)){
@@ -4895,6 +5152,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 8-bit operand (lower) */
 				else{
@@ -4906,6 +5165,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_UINT32, REG8_INDX(reg_src),
 						IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -4921,6 +5182,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG8_INDX(REG_AL),
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -4935,6 +5198,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG8_INDX(REG_AL),
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -4949,6 +5214,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG16_INDX(REG_AX),
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -4963,6 +5230,8 @@ ins_inspect(INS ins)
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_UINT32, REG32_INDX(REG_EAX),
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -4993,6 +5262,8 @@ ins_inspect(INS ins)
 					IARG_MEMORYWRITE_EA,
 				IARG_REG_VALUE, INS_RepCountRegister(ins),
 				IARG_REG_VALUE, INS_OperandReg(ins, OP_4),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 			}
 			/* no rep prefix */
@@ -5005,6 +5276,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG8_INDX(REG_AL),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 
 			/* done */
@@ -5035,6 +5308,8 @@ ins_inspect(INS ins)
 					IARG_MEMORYWRITE_EA,
 				IARG_REG_VALUE, INS_RepCountRegister(ins),
 				IARG_REG_VALUE, INS_OperandReg(ins, OP_4),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 			}
 			/* no rep prefix */
@@ -5047,6 +5322,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(REG_AX),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 
 			/* done */
@@ -5077,6 +5354,8 @@ ins_inspect(INS ins)
 					IARG_MEMORYWRITE_EA,
 				IARG_REG_VALUE, INS_RepCountRegister(ins),
 				IARG_REG_VALUE, INS_OperandReg(ins, OP_4),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 			}
 			/* no rep prefix */
@@ -5088,6 +5367,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(REG_EAX),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 
 			/* done */
@@ -5103,6 +5384,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_MEMORYWRITE_EA,
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5116,6 +5399,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_MEMORYWRITE_EA,
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5129,6 +5414,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_MEMORYWRITE_EA,
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5184,6 +5471,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else{
@@ -5195,6 +5484,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* memory operand */
@@ -5209,6 +5500,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else{
@@ -5219,6 +5512,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -5241,6 +5536,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else{
@@ -5252,6 +5549,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 						IARG_MEMORYWRITE_EA,
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* memory operand */
@@ -5266,6 +5565,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operand */
 				else{
@@ -5276,6 +5577,8 @@ ins_inspect(INS ins)
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_MEMORYWRITE_EA,
 						IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* immediate or segment operand; clean */
@@ -5339,6 +5642,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5355,6 +5660,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5371,6 +5678,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5387,6 +5696,8 @@ ins_inspect(INS ins)
 				IARG_FAST_ANALYSIS_CALL,
 				IARG_REG_VALUE, thread_ctx_ptr,
 				IARG_MEMORYWRITE_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 				IARG_END);
 
 			/* done */
@@ -5505,6 +5816,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
                     INS_InsertCall(ins,
 					IPOINT_BEFORE,
@@ -5513,6 +5826,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_src),
 					IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 			}
 			/* 16-bit operands */
@@ -5525,6 +5840,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
                     INS_InsertCall(ins,
 					IPOINT_BEFORE,
@@ -5533,6 +5850,8 @@ ins_inspect(INS ins)
 					IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_src),
 					IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 					IARG_END);
 			}
 
@@ -5592,6 +5911,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_base),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else{
@@ -5603,6 +5924,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_base),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* index register exists; no base register */
@@ -5618,6 +5941,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_indx),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else{
@@ -5629,6 +5954,8 @@ ins_inspect(INS ins)
 						IARG_REG_VALUE, thread_ctx_ptr,
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_indx),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 			/* base and index registers exist */
@@ -5645,6 +5972,8 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG32_INDX(reg_dst),
 					IARG_UINT32, REG32_INDX(reg_base),
 					IARG_UINT32, REG32_INDX(reg_indx),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 				/* 16-bit operands */
 				else{
@@ -5657,6 +5986,8 @@ ins_inspect(INS ins)
 					IARG_UINT32, REG16_INDX(reg_dst),
 					IARG_UINT32, REG16_INDX(reg_base),
 					IARG_UINT32, REG16_INDX(reg_indx),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
 						IARG_END);}
 			}
 
@@ -5672,12 +6003,109 @@ ins_inspect(INS ins)
 
 			/* done */
 			break;
+        case XED_ICLASS_JB:
+        case XED_ICLASS_JBE:
+        case XED_ICLASS_JL:
+        case XED_ICLASS_JLE:
+        case XED_ICLASS_JMP:
+        case XED_ICLASS_JNB:
+        case XED_ICLASS_JNBE:
+        case XED_ICLASS_JNL:
+        case XED_ICLASS_JNLE:
+        case XED_ICLASS_JNO:
+        case XED_ICLASS_JNP:
+        case XED_ICLASS_JNS:
+        case XED_ICLASS_JNZ:
+        case XED_ICLASS_JO:
+        case XED_ICLASS_JP:
+        case XED_ICLASS_JRCXZ:
+        case XED_ICLASS_JS:
+        case XED_ICLASS_JZ:
+
+
+			if (INS_OperandIsImmediate(ins, OP_0)) {
+                fprintf(stdout, "Jimmediate %s\n", INS_Disassemble(ins).c_str());
+			}
+			/* absolute target; register */
+			else if (INS_OperandIsReg(ins, OP_0)) {
+				/* extract the source register */
+				reg_src = INS_OperandReg(ins, OP_0);
+
+				/* 32-bit operand */
+				if (REG_is_gr32(reg_src)){
+					/* propagate the tag accordingly */
+					TRACEOUT;
+					INS_InsertCall(ins,
+						IPOINT_BEFORE,
+						(AFUNPTR)check_register_32bit,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_REG_VALUE, thread_ctx_ptr,
+					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
+						IARG_END);
+                }
+				/* 16-bit operand */
+				else{
+					/* propagate the tag accordingly */
+					INS_InsertCall(ins,
+						IPOINT_BEFORE,
+						(AFUNPTR)check_register_16bit,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_REG_VALUE, thread_ctx_ptr,
+					IARG_UINT32, REG32_INDX(reg_src),
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
+						IARG_END);
+                }
+			}
+			/* absolute target; memory */
+
+			else if (INS_OperandIsMemory(ins, OP_0)){
+				/* 32-bit operand */
+				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN){
+					/* propagate the tag accordingly */
+					INS_InsertCall(ins,
+						IPOINT_BEFORE,
+						(AFUNPTR)check_memory_32bit,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_REG_VALUE, thread_ctx_ptr,
+                        IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
+						IARG_END);
+				/* 16-bit operand */
+				}
+				else{
+					/* propagate the tag accordingly */
+					INS_InsertCall(ins,
+						IPOINT_BEFORE,
+						(AFUNPTR)check_memory_16bit,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_REG_VALUE, thread_ctx_ptr,
+                        IARG_MEMORYREAD_EA,
+                            IARG_THREAD_ID,
+                            IARG_INST_PTR,
+						IARG_END);
+				}
+			}
+            else{
+                //(void)fprintf(stdout, "other! %s\n", INS_Disassemble(ins).c_str());
+            }
+			/* done */
+			break;
+
 		/*
 		 * default handler
 		 */
+
+
 		default:
-			/* (void)fprintf(stdout, "%s\n",
-				INS_Disassemble(ins).c_str()); */
+//			 (void)fprintf(stdout, "%s\n",
+//				INS_Disassemble(ins).c_str());
 			break;
 	}
+//    getins();
+//    fprintf(stdout, "final : %08X\n", getins());
+	clrins();
 }

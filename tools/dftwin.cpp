@@ -493,8 +493,8 @@ sysenter_on_entry(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)
 	if(syscall_nr == NETSYSCALL){
 		unsigned long *reg_esp = (unsigned long *)PIN_GetContextReg(ctx, REG_ESP);
 		unsigned long *parameters = reg_esp+2;
-//		if(parameters[5] == IOCTL_AFD_SEND || parameters[5] == IOCTL_AFD_SEND_DATAGRAM){
-        if(parameters[5] == IOCTL_AFD_SEND){
+		if(parameters[5] == IOCTL_AFD_SEND || parameters[5] == IOCTL_AFD_SEND_DATAGRAM){
+//        if(parameters[5] == IOCTL_AFD_SEND){
             PAFD_SEND_INFO		pAfdTcpInfo			= (PAFD_SEND_INFO)parameters[6];
             if(pAfdTcpInfo->BufferArray->len > 1)
                 log(parameters[5], (unsigned long)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);
@@ -521,8 +521,8 @@ sysenter_on_exit(THREADID tid, CONTEXT *ctx, SYSCALL_STANDARD std, VOID *v)
 	if(syscall_nr == NETSYSCALL){
 		unsigned long *reg_esp = (unsigned long *)PIN_GetContextReg(ctx, REG_ESP);
 		unsigned long *parameters = reg_esp+2;
-//        if(parameters[5] == IOCTL_AFD_RECV || parameters[5] == IOCTL_AFD_RECV_DATAGRAM){
-        if(parameters[5] == IOCTL_AFD_RECV){
+        if(parameters[5] == IOCTL_AFD_RECV || parameters[5] == IOCTL_AFD_RECV_DATAGRAM){
+//        if(parameters[5] == IOCTL_AFD_RECV){
             PAFD_SEND_INFO		pAfdTcpInfo			= (PAFD_SEND_INFO)parameters[6];
             if(pAfdTcpInfo->BufferArray->len > 1)
                 log(parameters[5], (unsigned long)pAfdTcpInfo->BufferArray->buf, pAfdTcpInfo->BufferArray->len);

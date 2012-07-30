@@ -1,3 +1,2 @@
 Pin 2.11 kit 49303
-E:  Cannot execute file. System error: Unknown error. File name: "c:\ie.lnk"
-E: Pin is exiting due to fatal error
+E: libdft_core.cpp:6076: Cannot use IARG_MEMORYREAD_EA for ins without memory read (   150 0x7c921216 jnz 0x7c930406)

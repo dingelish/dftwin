@@ -221,9 +221,11 @@ char * net_func_names[] = {
 static void PIN_FAST_ANALYSIS_CALL
 alert(ADDRINT ins, ADDRINT bt)
 {
-    fprintf(logfile,"shit\n");
+    fprintf(logfile,"shit on thread %d\n", PIN_ThreadId());
+    fprintf(logfile, "offending instruction: %08X\n", ins );
+    fprintf(logfile, "branch target: %08X\n", bt);
     fflush(logfile);
-    fclose(logfile);
+    //fclose(logfile);
 }
 
 

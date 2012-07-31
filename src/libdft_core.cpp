@@ -76,31 +76,31 @@ extern bool require_update;
 FILE *GetOutputFile(THREADID threadid) {
     return ((thread_local *)PIN_GetThreadData(trace_tls_key, threadid)) -> logfile;
 }
-unsigned long getins(){
-    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
-//    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
-    return (templocal -> insaddr);
-}
-char * getbin(){
-    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
-//    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
-//    for(int i = 0; i < 8; i ++){printf("%02X ", templocal->binary[i]); printf("\n");}
-    return templocal -> binary;
-}
-void setins(INS ins){
-    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
-    t_local->insaddr = INS_Address(ins);
-    memcpy(t_local->binary, (unsigned char *)t_local->insaddr, 16);
-    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
-    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
-}
-void clrins(){
-    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
-    t_local->insaddr = 0;
-    memset(t_local->binary,0, 16);
-    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
-    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
-}
+//unsigned long getins(){
+//    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+////    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
+//    return (templocal -> insaddr);
+//}
+//char * getbin(){
+//    thread_local *templocal = (thread_local *)PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+////    printf("PIN_ThreadID() = %d \t PIN_GetThreadData() = %08X ADDR=%08X\n", PIN_ThreadId(), templocal, templocal -> insaddr);
+////    for(int i = 0; i < 8; i ++){printf("%02X ", templocal->binary[i]); printf("\n");}
+//    return templocal -> binary;
+//}
+//void setins(INS ins){
+//    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+//    t_local->insaddr = INS_Address(ins);
+//    memcpy(t_local->binary, (unsigned char *)t_local->insaddr, 16);
+//    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
+//    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
+//}
+//void clrins(){
+//    thread_local *t_local = (thread_local * )PIN_GetThreadData(trace_tls_key, PIN_ThreadId());
+//    t_local->insaddr = 0;
+//    memset(t_local->binary,0, 16);
+//    //for(int i = 0; i < 8; i ++){printf("%c ", t_local->binary[i]); printf("\n");}
+//    PIN_SetThreadData(trace_tls_key, t_local, PIN_ThreadId());
+//}
 #define KEYDFTTRACE
 #ifdef KEYDFTTRACE
 #define OUTADDR(addr, value) \
@@ -113,7 +113,7 @@ void clrins(){
         char buff[100]; \
         get_instruction(&inst, (BYTE *)ip1, MODE_32); \
         get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);\
-        fprintf(GetOutputFile(threadid), "%s\t%08X\t%s\n",entry->name, ip1, buff);\
+        fprintf(GetOutputFile(threadid), "[t] %s\t%08X\t%s\n",entry->name, ip1, buff);\
         fflush(GetOutputFile(threadid));\
     }
 
@@ -138,10 +138,13 @@ void clrins(){
 
 #ifdef FULLDFTTRACE
 #define TRACEOUT \
-    fprintf(GetOutputFile(), "%08X\t%s\n", INS_Address(getins()), INS_Disassemble(getins()).c_str());
+    fprintf(inner_logfile, "%08X\t%s\n", INS_Address(ins), INS_Disassemble(ins).c_str());
 #else
 #define TRACEOUT
 #endif
+
+
+
 
 /* tagmap */
 extern uint8_t	*bitmap;
@@ -198,6 +201,25 @@ check_memory_16bit(thread_ctx_t *thread_ctx, ADDRINT addr, THREADID threadid, AD
 	if(src_tag)
         KEYTRACE0;
 }
+
+//(AFUNPTR)trace_call,
+//IARG_FAST_ANALYSIS_CALL,
+//IARG_REG_VALUE, thread_ctx_ptr,
+//IARG_THREAD_ID,
+//IARG_INST_PTR,
+//IARG_END);
+static void PIN_FAST_ANALYSIS_CALL
+trace_call(CONTEXT *ctxt, THREADID threadid, ADDRINT instaddr){
+        moditem *entry = hash_mod[instaddr>>16];
+        if(entry == NULL) require_update = 1;
+        INSTRUCTION inst;
+        char buff[100];
+        get_instruction(&inst, (BYTE *)instaddr, MODE_32);
+        get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);
+        fprintf(GetOutputFile(threadid), "[n] %s\t%08X\t%08X\t%s\n",entry->name, instaddr,PIN_GetContextReg(ctxt, REG_EBP), buff);
+        fflush(GetOutputFile(threadid));
+}
+
 /*
  * tag propagation (analysis function)
  *
@@ -410,7 +432,7 @@ _movsx_m2r_oplw(thread_ctx_t *thread_ctx, uint32_t dst, uint32_t src, THREADID t
 	size_t src_tag =
 		((*((uint16_t *)(bitmap + VIRT2BYTE(src))) >> VIRT2BIT(src)) &
 		VCPU_MASK16);
-    KEYTRACE0;
+    KEYTRACE;
 	/* extension; 16-bit to 32-bit */
 	src_tag |= (src_tag << 2);
 
@@ -2894,7 +2916,7 @@ ins_inspect(const INS ins)
 	/* use XED to decode the instruction and extract its opcode */
 	xed_iclass_enum_t ins_indx = (xed_iclass_enum_t)INS_Opcode(ins);
 
-    setins(ins);
+//    setins(ins);
 //    getins();
 //    fprintf(stdout, "before: %08X\t%s\n", INS_Address(ins), INS_Disassemble(ins).c_str());
 //    fprintf(stdout, "after : %08X\n", getins());
@@ -5729,6 +5751,14 @@ ins_inspect(const INS ins)
 		/* call (near); similar to push (see above) */
 		case XED_ICLASS_CALL_NEAR:
 			/* relative target */
+                    INS_InsertCall(ins,
+						IPOINT_BEFORE ,
+						(AFUNPTR)trace_call,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_CONTEXT ,
+						IARG_THREAD_ID,
+						IARG_INST_PTR,
+						IARG_END);
 			if (INS_OperandIsImmediate(ins, OP_0)) {
 				/* 32-bit operand */
 				if (INS_OperandWidth(ins, OP_0) == MEM_LONG_LEN){
@@ -6094,7 +6124,16 @@ ins_inspect(const INS ins)
             }
 			/* done */
 			break;
-
+            case XED_ICLASS_RET_NEAR:
+                    INS_InsertCall(ins,
+						IPOINT_BEFORE ,
+						(AFUNPTR)trace_call,
+						IARG_FAST_ANALYSIS_CALL,
+						IARG_CONTEXT ,
+						IARG_THREAD_ID,
+						IARG_INST_PTR,
+						IARG_END);
+					break;
 		/*
 		 * default handler
 		 */
@@ -6107,5 +6146,5 @@ ins_inspect(const INS ins)
 	}
 //    getins();
 //    fprintf(stdout, "final : %08X\n", getins());
-	clrins();
+//	clrins();
 }

@@ -1,2 +1,3 @@
 Pin 2.11 kit 49303
-E: libdft_core.cpp:6076: Cannot use IARG_MEMORYREAD_EA for ins without memory read (   150 0x7c921216 jnz 0x7c930406)
+E: libdft_core.cpp:5761 cannot insert IPOINT_AFTER on an instruction without a fall-through path
+     245 0x7c93cbb1 call 0x7c93cbfa

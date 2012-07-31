@@ -439,6 +439,8 @@ trace_inspect(TRACE trace, VOID *v)
 	/* traverse all the BBLs in the trace */
 	for (bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
 		/* traverse all the instructions in the BBL */
+		ins = BBL_InsHead(bbl);
+
 		for (ins = BBL_InsHead(bbl);
 				INS_Valid(ins);
 				ins = INS_Next(ins)) {

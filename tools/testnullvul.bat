@@ -1,0 +1,1 @@
+..\..\..\..\..\pin.bat -t nullpin.dll -- vul_proj.exe out.txt

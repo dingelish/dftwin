@@ -571,7 +571,7 @@ tagmap_clrn(size_t addr, size_t num)
 {
 	/* alignment offset */
 	int alg_off;
-    debugout_clr("clrn", addr, num);
+    //debugout_clr("clrn", addr, num);
 	/* fast path for small writes (i.e., ~8 bytes) */
 	if (num <= ALIGN_OFF_MAX) {
 		switch (num) {

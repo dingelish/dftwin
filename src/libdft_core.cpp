@@ -107,6 +107,22 @@ FILE *GetOutputFile(THREADID threadid) {
     fprintf(GetOutputFile(), "%s\t%08X\n", addr, value);
 #define KEYTRACE0 \
     {\
+        thread_local *t_local = ((thread_local *)PIN_GetThreadData(trace_tls_key, threadid));\
+        int i, length = t_local->callstack.size();\
+        FILE* outputfile = t_local->logfile;\
+        for(i = length - 1; i >= 0; i --){\
+            if(t_local->callstack[i].is_outputted() == false){\
+                moditem *entry = hash_mod[t_local->callstack[i].addr >> 16]; \
+                if(entry == NULL) require_update = 1; \
+                INSTRUCTION inst; \
+                char buff[100]; \
+                get_instruction(&inst, (BYTE *)t_local->callstack[i].addr, MODE_32); \
+                get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);\
+                fprintf(outputfile, "[t] %s\t%08X\t%s\n",entry->name, t_local->callstack[i].addr, buff);\
+                t_local->callstack[i].set_outputted();\
+                t_local->callstack[i].set_tainted();\
+            }\
+        }\
         moditem *entry = hash_mod[ip1>>16]; \
         if(entry == NULL) require_update = 1; \
         INSTRUCTION inst; \
@@ -210,16 +226,27 @@ check_memory_16bit(thread_ctx_t *thread_ctx, ADDRINT addr, THREADID threadid, AD
 //IARG_END);
 static void PIN_FAST_ANALYSIS_CALL
 trace_call(CONTEXT *ctxt, THREADID threadid, ADDRINT instaddr){
+    thread_local *t_local = ((thread_local *)PIN_GetThreadData(trace_tls_key, threadid));
+    t_local->push_a_call(instaddr);
+}
+static void PIN_FAST_ANALYSIS_CALL
+trace_ret(CONTEXT *ctxt, THREADID threadid, ADDRINT instaddr){
+    thread_local *t_local = ((thread_local *)PIN_GetThreadData(trace_tls_key, threadid));
+    FILE *outputfile = t_local -> logfile;
+
+    if(t_local->is_current_tainted()){
         moditem *entry = hash_mod[instaddr>>16];
         if(entry == NULL) require_update = 1;
         INSTRUCTION inst;
         char buff[100];
         get_instruction(&inst, (BYTE *)instaddr, MODE_32);
         get_instruction_string(&inst, FORMAT_INTEL, 0, buff, 100);
-        fprintf(GetOutputFile(threadid), "[n] %s\t%08X\t%08X\t%s\n",entry->name, instaddr,PIN_GetContextReg(ctxt, REG_EBP), buff);
-        fflush(GetOutputFile(threadid));
+        fprintf(outputfile, "[n] %s\t%08X\t%s\n",entry->name, instaddr, buff);
+        fflush(outputfile);
+    }
+    if(t_local->callstack.size() > 0)
+        t_local->pop_a_call();
 }
-
 /*
  * tag propagation (analysis function)
  *
@@ -6127,7 +6154,7 @@ ins_inspect(const INS ins)
             case XED_ICLASS_RET_NEAR:
                     INS_InsertCall(ins,
 						IPOINT_BEFORE ,
-						(AFUNPTR)trace_call,
+						(AFUNPTR)trace_ret,
 						IARG_FAST_ANALYSIS_CALL,
 						IARG_CONTEXT ,
 						IARG_THREAD_ID,

@@ -136,12 +136,69 @@ typedef struct {
 	void	(* post)(INS ins);	/* post-ins instrumentation callback */
 	size_t	dflact;                 /* default instrumentation predicate */
 } ins_desc_t;
+#include <deque>
+#define OUTPUTTED   0
+#define TAINTED     1
+#define MASK_OUTPUTTED  (1 << OUTPUTTED)
+#define MASK_TAINTED    (1 << TAINTED)
+struct callinst{
+    unsigned int addr;
+    unsigned char attribute;
+    bool is_outputted(){
+        return attribute & MASK_OUTPUTTED;
+    }
+    bool is_tainted(){
+        return attribute & MASK_TAINTED;
+    }
+    void set_outputted(){
+        attribute |= MASK_OUTPUTTED;
+    }
+    void set_tainted(){
+        attribute |= MASK_TAINTED;
+    }
 
-typedef struct {
+    callinst(){
+        addr = attribute = 0;
+    }
+    callinst(unsigned int calladdr){
+        addr = calladdr;
+        attribute = 0;
+    }
+};
+struct thread_local{
 	unsigned long insaddr;
 	FILE *logfile;
-	char binary[16];
-} thread_local;
+	std::deque<callinst> callstack;
+    void push_a_call(unsigned int addr){
+        callinst tempcall(addr);
+        callstack.push_back(addr);
+        //printf("pushing call %08X\n", addr);
+    }
+    void pop_a_call(){
+        callstack.pop_back();
+        //printf("poping call, size = %d\n", callstack.size());
+    }
+    void set_tainted(){
+        int i, length = callstack.size();
+        for(i = 0; i < length; i ++)
+            callstack[i].set_tainted();
+    }
+    void set_outputted(){
+        int i, length = callstack.size();
+        for(i = 0; i < length; i ++)
+            callstack[i].set_outputted();
+    }
+    bool is_current_outputted(){
+        if(callstack.size() == 0)
+            return false;
+        return callstack.back().is_outputted();
+    }
+    bool is_current_tainted(){
+        if(callstack.size() == 0)
+            return false;
+        return callstack.back().is_tainted();
+    }
+} ;
 
 
 /* libdft API */

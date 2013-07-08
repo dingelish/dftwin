@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="dftwin.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="library.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="thread_helper.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="debug_helper.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="debug_helper.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="library.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="thread_helper.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="pe.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="net_helper.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="source files">
+      <UniqueIdentifier>{e9d88286-3478-4a74-9312-bc9b222cfe04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files">
+      <UniqueIdentifier>{479c3d25-f8fe-4ad2-b417-4065cb4d1e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="log">
+      <UniqueIdentifier>{07c3d91c-778b-4080-8a44-e98227ffa986}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="importants">
+      <UniqueIdentifier>{e80563c7-d976-44da-b64c-a778b194aed1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pintool.log">
+      <Filter>log</Filter>
+    </None>
+    <None Include="flash_notes.txt">
+      <Filter>importants</Filter>
+    </None>
+  </ItemGroup>
+</Project>

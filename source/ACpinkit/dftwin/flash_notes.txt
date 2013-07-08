@@ -1,0 +1,9 @@
+Function Entry Generation 
+
+FlashPlayer.exe + 0x000519b0 = 004519B0
+FlashPlayer.exe + 0x004779f8 = 008789F8
+FlashPlayer.exe + 0x00466cec = 00867cec
+FlashPlayer.exe + 0x004763e6 = 008773e6
+
+
+Ret Entry Generation

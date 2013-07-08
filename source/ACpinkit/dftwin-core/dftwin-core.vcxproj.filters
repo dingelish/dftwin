@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="libdft_api.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="tagmap.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="libdft_core.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="syscall_desc.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+    <ClCompile Include="libdasm.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="branch_pred.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="libdft_api.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="libdft_core.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="syscall.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="syscall_desc.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="unistd_32.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="version.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="tagmap.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="libdasm.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="opcode_tables.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="header files">
+      <UniqueIdentifier>{33f0317a-ea31-420c-83bd-e1c5a1afd941}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source files">
+      <UniqueIdentifier>{ee8f398a-a10e-4e24-ac18-4e9a3ff4402c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

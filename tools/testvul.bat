@@ -1,1 +1,0 @@
-..\..\..\..\..\pin.bat -t dftwin.dll -- vul_proj.exe out.txt

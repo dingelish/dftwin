@@ -1,1 +1,0 @@
-..\..\..\..\..\pin.bat -t dftwin.dll -- server2.exe
